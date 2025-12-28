@@ -23,7 +23,7 @@ export type LessonCategory = 'AI_BASICS' | 'INTERNET_SKILLS' | 'SAFETY';
 export interface LessonStep {
   title: string;
   content: string;
-  interactiveType?: 'SIMULATED_EMAIL' | 'SIMULATED_SEARCH' | 'SIMULATED_VIDEO_CALL' | 'SECURE_CHECKOUT' | 'SIMULATED_QR' | 'SIMULATED_VOICE' | 'SIMULATED_MAP' | 'QUIZ' | 'INFO' | 'SIMULATED_LENS';
+  interactiveType?: 'SIMULATED_EMAIL' | 'SIMULATED_SEARCH' | 'SIMULATED_VIDEO_CALL' | 'SECURE_CHECKOUT' | 'SIMULATED_QR' | 'SIMULATED_VOICE' | 'SIMULATED_MAP' | 'QUIZ' | 'INFO' | 'SIMULATED_LENS' | 'SIMULATED_SOCIAL';
   interactiveData?: any;
 }
 
