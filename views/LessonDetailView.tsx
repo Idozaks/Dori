@@ -15,7 +15,6 @@ import {
   Map as MapIcon, 
   Ticket, Package, Book, MessageCircleMore, Check, MapPin, Pill, Truck, Home, Utensils, Headphones, Gift, Calendar, UserCheck, Phone, ShieldAlert
 } from 'lucide-react';
-import { localize } from '../data/lessons';
 import { LoadingBar } from '../components/LoadingBar';
 
 interface LessonDetailViewProps {
@@ -57,17 +56,46 @@ const BirdAssistant: React.FC<{ state?: 'happy' | 'thinking' | 'talking' }> = ({
   </div>
 );
 
-const TargetGuideRing: React.FC<{ x: number, y: number, isFound?: boolean }> = ({ x, y, isFound = false }) => (
-  <div 
-    className="absolute pointer-events-none transition-all duration-500 z-10" 
-    style={{ left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}
-  >
-    <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-3xl border-4 border-dashed border-blue-400/50 flex items-center justify-center animate-pulse ${isFound ? 'bg-green-500/30 border-green-400 scale-150 opacity-0' : ''}`}>
-       <div className="w-3 h-3 bg-blue-400 rounded-full opacity-40" />
+const TargetGuideRing: React.FC<{ x: number, y: number, isFound?: boolean, currentPos: {x: number, y: number} }> = ({ x, y, isFound = false, currentPos }) => {
+  const dist = Math.sqrt(Math.pow(x - currentPos.x, 2) + Math.pow(y - currentPos.y, 2));
+  const isNear = dist < 25;
+
+  return (
+    <div 
+      className="absolute pointer-events-none transition-all duration-500 z-10" 
+      style={{ left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}
+    >
+      {/* The Target Box as requested in screenshot */}
+      <div className={`
+        relative w-28 h-28 sm:w-36 sm:h-36 rounded-[2.5rem] border-8 
+        flex items-center justify-center transition-all duration-500
+        ${isFound 
+          ? 'border-green-500 bg-green-500/10 scale-110' 
+          : isNear 
+            ? 'border-blue-400 bg-blue-400/20 scale-105 animate-pulse' 
+            : 'border-white/40 bg-white/5 shadow-xl'}
+      `}>
+        {/* Inner circle/dot indicator */}
+        <div className={`
+          w-4 h-4 rounded-full transition-all duration-300
+          ${isFound ? 'bg-green-500 scale-150' : 'bg-white/60 animate-ping'}
+        `} />
+        
+        {/* Helper camera icon inside the target to hint what to do */}
+        {!isFound && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-20">
+            <Camera size={48} className="text-white" />
+          </div>
+        )}
+      </div>
+
+      {/* Ripple effect */}
+      {!isFound && (
+        <div className={`absolute inset-0 w-28 h-28 sm:w-36 sm:h-36 rounded-[2.5rem] border-4 border-white/20 scale-125 animate-ping`} />
+      )}
     </div>
-    <div className={`absolute inset-0 w-20 h-20 sm:w-24 sm:h-24 rounded-3xl border-2 border-blue-400/30 scale-125 animate-ping ${isFound ? 'hidden' : ''}`} />
-  </div>
-);
+  );
+};
 
 const PharmacyExperience: React.FC<{ lang: Language, onComplete: () => void }> = ({ lang, onComplete }) => {
   const t = UI_STRINGS[lang];
@@ -172,12 +200,6 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
                 setLessonLoadingProgress(p);
                 setLessonLoadingMessage(m);
               },
-              onComplete: () => {
-                setLessonLoadingProgress(100);
-              },
-              onError: () => {
-                setLessonIsLoading(false);
-              }
             }); 
             setBgImage(currentImg); 
           } 
@@ -198,8 +220,12 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
               }
             });
             const jsonMatch = result.match(/\{.*\}/);
-            if (jsonMatch) setQrTargetPos(JSON.parse(jsonMatch[0]));
-            else setQrTargetPos({ x: 50, y: 50 });
+            if (jsonMatch) {
+              const coords = JSON.parse(jsonMatch[0]);
+              setQrTargetPos(coords);
+            } else {
+              setQrTargetPos({ x: 50, y: 50 });
+            }
           } catch (e) { 
             console.error("QR Localization Error:", e);
             setQrTargetPos({ x: 50, y: 50 });
@@ -225,15 +251,22 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
     const rect = containerRef.current.getBoundingClientRect();
     let clientX: number, clientY: number;
     if ('touches' in e) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; } else { clientX = e.clientX; clientY = e.clientY; }
+    
+    // Convert client coordinates to percentage relative to the interactive container
     const x = Math.max(5, Math.min(95, ((clientX - rect.left) / rect.width) * 100));
     const y = Math.max(5, Math.min(95, ((clientY - rect.top) / rect.height) * 100));
     setPos({ x, y });
 
+    // Detection logic
     const detectionRadius = 20;
 
     if (step.interactiveType === 'SIMULATED_QR') {
       const distance = Math.sqrt(Math.pow(x - qrTargetPos.x, 2) + Math.pow(y - qrTargetPos.y, 2));
-      if (distance < detectionRadius && !qrSuccess) setQrSuccess(true);
+      if (distance < detectionRadius && !qrSuccess) {
+        setQrSuccess(true);
+        // Haptic feedback if available
+        if (navigator.vibrate) navigator.vibrate(50);
+      }
     } else if (step.interactiveType === 'SIMULATED_LENS') {
       const targets = step.interactiveData?.targets || [];
       targets.forEach((t: any) => {
@@ -241,7 +274,10 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
       });
     } else if (step.interactiveType === 'SIMULATED_BUS_PAYMENT') {
       const distance = Math.sqrt(Math.pow(x - qrTargetPos.x, 2) + Math.pow(y - qrTargetPos.y, 2));
-      if (distance < detectionRadius && !busQrScanned) setBusQrScanned(true);
+      if (distance < detectionRadius && !busQrScanned) {
+        setBusQrScanned(true);
+        if (navigator.vibrate) navigator.vibrate(100);
+      }
     }
   };
 
@@ -295,18 +331,35 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
   };
 
   const renderInteractive = () => {
-    if (lessonIsLoading) return <LoadingBar progress={lessonLoadingProgress} message={lessonLoadingMessage} lang={lang} className="my-10" />;
+    if (lessonIsLoading) return <LoadingBar progress={lessonLoadingProgress} message={lessonLoadingMessage} lang={lang} />;
+    
     switch (step.interactiveType) {
       case 'SIMULATED_QR':
         return (
-          <div className="w-full rounded-[2.5rem] overflow-hidden aspect-square relative bg-slate-100 flex items-center justify-center border-4 border-slate-200 shadow-2xl cursor-grab" ref={containerRef} onMouseDown={() => setIsDragging(true)} onMouseUp={() => setIsDragging(false)} onMouseMove={handleMove} onTouchStart={() => setIsDragging(true)} onTouchEnd={() => setIsDragging(false)} onTouchMove={handleMove} style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', touchAction: 'none' }}>
-            <div className={`absolute w-28 h-28 sm:w-36 sm:h-36 rounded-[2.5rem] flex items-center justify-center border-8 pointer-events-none transition-all duration-300 ${qrSuccess ? 'border-green-500 scale-110 opacity-0' : 'border-blue-500 bg-white/20 backdrop-blur-[2px]'}`} style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}>
-              <Camera size={48} className={qrSuccess ? 'text-green-500' : 'text-blue-500 shadow-lg'} />
+          <div 
+            className="w-full rounded-[3.5rem] overflow-hidden aspect-[4/5] relative bg-slate-100 flex items-center justify-center border-4 border-slate-200 shadow-2xl cursor-crosshair" 
+            ref={containerRef} 
+            onMouseDown={() => setIsDragging(true)} 
+            onMouseUp={() => setIsDragging(false)} 
+            onMouseMove={handleMove} 
+            onTouchStart={() => setIsDragging(true)} 
+            onTouchEnd={() => setIsDragging(false)} 
+            onTouchMove={handleMove} 
+            style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', touchAction: 'none' }}
+          >
+            {/* The Draggable Scanner Viewfinder */}
+            <div className={`absolute w-36 h-36 sm:w-44 sm:h-44 rounded-[2.5rem] flex items-center justify-center border-8 pointer-events-none transition-all duration-300 ${qrSuccess ? 'border-green-500 scale-110 opacity-0' : 'border-blue-500 bg-white/10 backdrop-blur-[2px] shadow-2xl'}`} style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}>
+              <div className="bg-white/90 p-5 rounded-3xl shadow-xl">
+                <Camera size={56} className={qrSuccess ? 'text-green-500' : 'text-blue-500'} />
+              </div>
             </div>
-            <TargetGuideRing x={qrTargetPos.x} y={qrTargetPos.y} isFound={qrSuccess} />
+
+            {/* The Target Hotspot Indicator */}
+            <TargetGuideRing x={qrTargetPos.x} y={qrTargetPos.y} isFound={qrSuccess} currentPos={pos} />
+
             {qrSuccess && (
               <div className="absolute inset-x-0 bottom-0 p-6 z-20 animate-fade-in">
-                  <div className="bg-white/95 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl w-full flex flex-col gap-4 border-2 border-blue-50">
+                  <div className="bg-white/95 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl w-full flex flex-col gap-4 border-2 border-blue-50">
                     <p className="text-sm font-black text-blue-600 text-center flex items-center justify-center gap-2 tracking-widest uppercase"><CheckCircle2 size={18} /> {t.qrCodeScanned}</p>
                     <div className="grid grid-cols-2 gap-3">
                       {step.interactiveData?.actions?.map((action: any) => {
@@ -390,10 +443,14 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
         );
       case 'SIMULATED_BUS_PAYMENT':
         return (
-          <div className="w-full rounded-[2.5rem] overflow-hidden aspect-square relative bg-slate-100 flex items-center justify-center border-4 border-slate-200 shadow-2xl cursor-grab" ref={containerRef} onMouseDown={() => setIsDragging(true)} onMouseUp={() => setIsDragging(false)} onMouseMove={handleMove} onTouchStart={() => setIsDragging(true)} onTouchEnd={() => setIsDragging(false)} onTouchMove={handleMove} style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', touchAction: 'none' }}>
-             <TargetGuideRing x={qrTargetPos.x} y={qrTargetPos.y} isFound={busQrScanned} />
+          <div className="w-full rounded-[3.5rem] overflow-hidden aspect-square relative bg-slate-100 flex items-center justify-center border-4 border-slate-200 shadow-2xl cursor-grab" ref={containerRef} onMouseDown={() => setIsDragging(true)} onMouseUp={() => setIsDragging(false)} onMouseMove={handleMove} onTouchStart={() => setIsDragging(true)} onTouchEnd={() => setIsDragging(false)} onTouchMove={handleMove} style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', touchAction: 'none' }}>
+             <TargetGuideRing x={qrTargetPos.x} y={qrTargetPos.y} isFound={busQrScanned} currentPos={pos} />
              {!busQrScanned ? (
-               <div className="absolute w-32 h-32 rounded-[2.5rem] border-8 border-blue-500 bg-white/20 backdrop-blur-[2px] flex items-center justify-center" style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}><Camera size={48} className="text-blue-500" /></div>
+               <div className="absolute w-32 h-32 rounded-[2.5rem] border-8 border-blue-500 bg-white/20 backdrop-blur-[2px] flex items-center justify-center shadow-2xl" style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}>
+                 <div className="bg-white p-3 rounded-2xl shadow-lg">
+                    <Camera size={48} className="text-blue-500" />
+                 </div>
+               </div>
              ) : (
                <div className="absolute inset-0 bg-green-500/95 flex flex-col items-center justify-center text-white text-center p-8 animate-fade-in"><CheckCircle2 size={72} className="mb-4" /><h3 className="text-3xl font-black uppercase tracking-widest">{t.ridePaid}</h3><p className="text-xl opacity-90">{t.enjoyJourney}</p></div>
              )}
@@ -404,37 +461,55 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 pb-20 px-6 pt-8">
-      <div className="flex items-center justify-between px-2">
-        <button onClick={onBack} className="flex items-center gap-2 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-blue-600 transition-colors">{isRTL ? <ChevronRight size={16} /> : <ChevronLeft size={16} />} {t.backToHub}</button>
-        <span className="text-slate-400 font-black text-xs uppercase tracking-widest bg-white px-4 py-1.5 rounded-full border border-slate-100 shadow-sm">{t.step} {stepIndex + 1} / {lesson.steps.length}</span>
+    <div className="max-w-4xl mx-auto space-y-6 pb-20 px-6 pt-8">
+      {/* Header Info Panel */}
+      <div className="flex items-center justify-between px-2 mb-2">
+        <button onClick={onBack} className="flex items-center gap-2 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-blue-600 transition-all hover:translate-x-1">
+          {isRTL ? <ChevronRight size={16} /> : <ChevronLeft size={16} />} {t.backToHub}
+        </button>
+        <div className="flex items-center gap-2">
+           <span className="bg-blue-50 text-blue-600 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-sm border border-blue-100">{t.step} {stepIndex + 1} / {lesson.steps.length}</span>
+        </div>
       </div>
       
-      <div className="bg-white p-8 sm:p-10 rounded-[3.5rem] shadow-2xl border-4 border-white relative ring-1 ring-slate-100">
+      {/* Main Content Card */}
+      <div className="bg-white p-8 sm:p-12 rounded-[4rem] shadow-2xl border-4 border-white relative ring-1 ring-slate-100 overflow-hidden">
         <div className="absolute -top-10 -right-4 sm:-top-12 sm:-right-6 z-30 drop-shadow-2xl"><BirdAssistant state={lessonIsLoading ? 'thinking' : 'talking'} /></div>
         
-        <div className="mb-8">
+        <div className="mb-10">
           <ProgressBar current={stepIndex + 1} total={lesson.steps.length} label={lesson.title} />
         </div>
 
-        <div className="mt-8 space-y-6">
-          <h2 className="text-3xl font-black text-slate-800 leading-tight">{step.title}</h2>
-          <div className="text-xl text-slate-600 leading-relaxed font-medium">{step.content}</div>
+        <div className="mt-8 space-y-8">
+          <div className="space-y-4">
+            <h2 className="text-4xl font-black text-slate-800 leading-tight tracking-tight">{step.title}</h2>
+            <div className="text-2xl text-slate-500 leading-relaxed font-bold opacity-80">{step.content}</div>
+          </div>
           
-          <div className="relative z-10 mt-8">
+          <div className="relative z-10 mt-10">
             {renderInteractive()}
           </div>
         </div>
 
-        <div className="mt-12 flex justify-between gap-4 pt-8 border-t-4 border-slate-50">
-          <Button variant="secondary" onClick={() => setStepIndex(Math.max(0, stepIndex - 1))} disabled={stepIndex === 0 || lessonIsLoading} className="!py-4 !px-8 !text-base !rounded-2xl !border-2">
-            {isRTL ? <ChevronRight size={20} /> : <ChevronLeft size={20} />} {t.prev}
+        {/* Footer Navigation */}
+        <div className="mt-16 flex justify-between gap-6 pt-10 border-t-4 border-slate-50">
+          <Button variant="secondary" onClick={() => setStepIndex(Math.max(0, stepIndex - 1))} disabled={stepIndex === 0 || lessonIsLoading} className="!py-5 !px-10 !text-xl !rounded-[2rem] !border-4 !border-slate-100 hover:!border-blue-500 transition-all">
+            {isRTL ? <ChevronRight size={28} /> : <ChevronLeft size={28} />} {t.prev}
           </Button>
-          <Button onClick={handleNext} disabled={ (step.interactiveType === 'SIMULATED_QR' && !qrSuccess) || (step.interactiveType === 'SIMULATED_PHOTO_JOURNEY' && !photoJourneyComplete) || (step.interactiveType === 'SIMULATED_PHARMACY' && !pharmacyComplete) || (step.interactiveType === 'QUIZ' && !quizCorrect) || (step.interactiveType === 'SIMULATED_BUS_PAYMENT' && !busQrScanned) || lessonIsLoading } className="!py-4 !px-10 !text-xl !rounded-2xl shadow-blue-200">
-            {isLastStep ? t.finish : t.next} {isRTL ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
+          <Button onClick={handleNext} disabled={ (step.interactiveType === 'SIMULATED_QR' && !qrSuccess) || (step.interactiveType === 'SIMULATED_PHOTO_JOURNEY' && !photoJourneyComplete) || (step.interactiveType === 'SIMULATED_PHARMACY' && !pharmacyComplete) || (step.interactiveType === 'QUIZ' && !quizCorrect) || (step.interactiveType === 'SIMULATED_BUS_PAYMENT' && !busQrScanned) || lessonIsLoading } className="!py-5 !px-14 !text-2xl !rounded-[2rem] shadow-xl shadow-blue-200 hover:scale-105 active:scale-95 transition-all">
+            {isLastStep ? t.finish : t.next} {isRTL ? <ChevronLeft size={32} /> : <ChevronRight size={32} />}
           </Button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(2deg); } 50% { transform: translateY(-10px) rotate(-2deg); } }
+        .bird-container { animation: float 3s ease-in-out infinite; }
+        .animate-spin-slow { animation: spin 4s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fade-in-lesson { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-lesson { animation: fade-in-lesson 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+      `}</style>
     </div>
   );
 };

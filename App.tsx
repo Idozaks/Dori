@@ -21,14 +21,12 @@ const DEFAULT_ACCOUNTS: UserAccount[] = [
   { id: 'goldie-68', name: 'Goldie', avatar: 'goldie', completedLessonIds: ['qr-codes'], selectedInterests: ['INTERNET_SKILLS'], preferredLanguage: 'en' }
 ];
 
-// Seed list for initial warm-up, but look-ahead will handle the rest
 const BACKGROUND_IMAGE_PROMPTS = [
   "A high-quality photo of a wooden restaurant table. In the center of the table, there is a prominent square QR code printed on a small acrylic stand.",
   "A photo of a modern museum entrance. A sleek metal pedestal with a glowing scanner screen is visible. The background shows a blurry art gallery.",
   "A photo of a cardboard delivery package sitting on a front porch rug. A large QR code sticker is on the box.",
   "A high-resolution photo of a library book titled 'The Old Man and the Sea'. A library QR sticker is attached to the back cover.",
   "A city bus interior with a yellow payment pole with a QR code.",
-  "A vibrant market scene with fresh apples and colorful vegetables.",
 ];
 
 function App() {
@@ -49,7 +47,7 @@ function App() {
   const langMenuRef = useRef<HTMLDivElement>(null);
 
   const activeUser = userProgress.accounts.find(a => a.id === userProgress.currentAccountId);
-
+  
   const effectiveLanguage = displayLanguage;
   const isRTL = effectiveLanguage === 'he' || effectiveLanguage === 'ar';
   const t = UI_STRINGS[effectiveLanguage];
@@ -58,7 +56,6 @@ function App() {
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress)); }, [userProgress]);
   useEffect(() => { localStorage.setItem(TEMPORARY_LANG_KEY, effectiveLanguage); }, [effectiveLanguage]);
 
-  // Handle outside clicks for language menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
@@ -74,7 +71,6 @@ function App() {
     else setCurrentView(ViewState.LANDING);
   }, [userProgress.isAuthenticated, userProgress.currentAccountId]);
 
-  // Exposed function for children to populate the cache
   const updateImageCache = useCallback(async (prompt: string) => {
     if (cachedBackgroundImages[prompt]) return;
     try {
@@ -88,7 +84,7 @@ function App() {
   useEffect(() => {
     const pregenerateImages = async () => {
       const promises = BACKGROUND_IMAGE_PROMPTS.map(async (prompt) => {
-        try { const imageUrl = await generateNanoBananaImage(prompt, { lang: effectiveLanguage }); return { prompt, imageUrl }; }
+        try { const imageUrl = await generateNanoBananaImage(prompt, { lang: effectiveLanguage }); return { prompt, imageUrl }; } 
         catch (e) { return { prompt, imageUrl: null }; }
       });
       const results = await Promise.allSettled(promises);
@@ -110,70 +106,25 @@ function App() {
     }
   };
 
-  const handleLogin = (account: UserAccount) => {
-    const today = new Date().toISOString().split('T')[0];
-    const lastLogin = account.lastLoginDate;
-    let newStreak = account.streakCount || 0;
-
-    if (!lastLogin) {
-      newStreak = 1;
-    } else {
-      const lastDate = new Date(lastLogin);
-      const todayDate = new Date(today);
-      const diffTime = Math.abs(todayDate.getTime() - lastDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays === 1) {
-        newStreak += 1;
-      } else if (diffDays > 1) {
-        newStreak = 1;
-      }
-      // If diffDays is 0, it means the user logged in again on the same day, keep the current streak.
-    }
-
-    setUserProgress(prev => ({
-      ...prev,
-      currentAccountId: account.id,
-      isAuthenticated: true,
-      accounts: prev.accounts.map(a => a.id === account.id ? { ...a, lastLoginDate: today, streakCount: newStreak } : a)
-    }));
-    setDisplayLanguage(account.preferredLanguage);
+  const handleLogin = (account: UserAccount) => { 
+    setUserProgress(prev => ({ ...prev, currentAccountId: account.id, isAuthenticated: true })); 
+    setDisplayLanguage(account.preferredLanguage); 
+  };
+  
+  const handleSwitchAccount = () => setUserProgress(prev => ({ ...prev, isAuthenticated: false, currentAccountId: null }));
+  const handleLogoClick = () => {
+    // Reset login state and return to landing as requested
+    setUserProgress(prev => ({ ...prev, isAuthenticated: false, currentAccountId: null }));
+    setCurrentView(ViewState.LANDING);
   };
 
-  const handleSwitchAccount = () => setUserProgress(prev => ({ ...prev, isAuthenticated: false, currentAccountId: null }));
   const handleLessonSelect = (id: string) => { setActiveLessonId(id); setCurrentView(ViewState.LESSON_DETAIL); };
 
   const handleFinishLesson = (id: string) => {
-    setUserProgress(prev => {
-      const activeAcc = prev.accounts.find(a => a.id === prev.currentAccountId);
-      if (!activeAcc) return prev;
-
-      const newCompleted = activeAcc.completedLessonIds.includes(id)
-        ? activeAcc.completedLessonIds
-        : [...activeAcc.completedLessonIds, id];
-
-      // Check for badge completion
-      const ALL_LESSONS = getLocalizedLessons(effectiveLanguage);
-      const lesson = ALL_LESSONS.find(l => l.id === id);
-      let newBadges = activeAcc.earnedBadges || [];
-
-      if (lesson) {
-        const category = lesson.category;
-        const catLessons = ALL_LESSONS.filter(l => l.category === category);
-        const isCatComplete = catLessons.every(l => newCompleted.includes(l.id));
-
-        if (isCatComplete && !newBadges.includes(category)) {
-          newBadges = [...newBadges, category];
-        }
-      }
-
-      return {
-        ...prev,
-        accounts: prev.accounts.map(a => a.id === prev.currentAccountId
-          ? { ...a, completedLessonIds: newCompleted, earnedBadges: newBadges }
-          : a)
-      };
-    });
+    setUserProgress(prev => ({
+      ...prev,
+      accounts: prev.accounts.map(a => a.id === prev.currentAccountId ? { ...a, completedLessonIds: a.completedLessonIds.includes(id) ? a.completedLessonIds : [...a.completedLessonIds, id] } : a)
+    }));
     setCurrentView(ViewState.LESSON_HUB);
     setActiveLessonId(null);
   };
@@ -202,7 +153,7 @@ function App() {
   return (
     <div className={`min-h-screen flex flex-col bg-[#f0f4f8] ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <header className="p-4 bg-white shadow-md flex justify-between items-center relative z-40">
-        <button onClick={() => setCurrentView(userProgress.isAuthenticated ? ViewState.DASHBOARD : ViewState.LANDING)} className="flex items-center gap-3 text-blue-600 font-black text-2xl tracking-tight">
+        <button onClick={handleLogoClick} className="flex items-center gap-3 text-blue-600 font-black text-2xl tracking-tight hover:opacity-80 transition-opacity">
           <BookOpen size={28} /> <span>Dori AI</span>
         </button>
         <div className="flex items-center gap-2 sm:gap-4">

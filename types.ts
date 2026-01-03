@@ -48,9 +48,6 @@ export interface UserAccount {
   completedLessonIds: string[];
   selectedInterests: LessonCategory[];
   preferredLanguage: Language;
-  lastLoginDate?: string;
-  streakCount?: number;
-  earnedBadges?: string[];
 }
 
 export interface UserProgress {
