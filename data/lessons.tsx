@@ -1,405 +1,403 @@
 
 import React from 'react';
 import { Lesson, Language, LessonCategory } from '../types';
-import { Mail, Search, ShieldCheck, Cpu, Map as MapIcon, Video, QrCode, Mic, Zap, Radio, Eye, Lock, ShoppingCart, Ghost, Users, Navigation } from 'lucide-react';
+import { Mail, Search, ShieldCheck, Cpu, Map as MapIcon, Video, QrCode, Mic, Zap, Radio, Eye, Lock, ShoppingCart, Ghost, Users, Navigation, Bus, MessageSquare, Phone, Sparkles, Utensils, Image as ImageIcon, Wand2, FileText, Star, Package, Book, Ticket, Globe, Camera, CreditCard, Heart, MessageCircleMore, ShieldAlert, Pill, Headphones, Gift, Calendar, UserCheck, Truck, MessageCircle, Info } from 'lucide-react';
 
-export const getLocalizedLessons = (lang: Language): Lesson[] => {
-  const content: Record<Language, Lesson[]> = {
-    en: [
-      {
-        id: 'internet-social-1',
-        category: 'INTERNET_SKILLS',
-        title: 'Connecting with Family',
-        shortDesc: 'Learn how to use social media to see photos of grandchildren.',
-        icon: <Users size={24} />,
-        steps: [
-          {
-            title: "What is Social Media?",
-            content: "Think of social media (like Facebook) as a digital community center. It's where friends and family post photos and updates about their lives so you can stay connected.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "Interacting with Posts",
-            content: "When you see a photo you like, you can 'Like' it. This tells your family you've seen their update! Practice by liking the photo of the grandchild below.",
-            interactiveType: 'SIMULATED_SOCIAL',
-            interactiveData: { type: 'LIKE_PRACTICE' }
-          }
-        ]
-      },
-      {
-        id: 'internet-email-1',
-        category: 'INTERNET_SKILLS',
-        title: 'Sending an Email',
-        shortDesc: 'The modern way to send a letter to anyone in the world.',
-        icon: <Mail size={24} />,
-        steps: [
-          {
-            title: "Digital Letters",
-            content: "Email is like a letter that arrives instantly. You just need the person's 'Email Address'—which is like their digital house address.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "Write Your First Message",
-            content: "Let's practice writing an email. Fill in who it's for, what it's about, and your message below.",
-            interactiveType: 'SIMULATED_EMAIL'
-          }
-        ]
-      },
-      {
-        id: 'internet-maps-1',
-        category: 'INTERNET_SKILLS',
-        title: 'Finding Your Way',
-        shortDesc: 'Never get lost again with digital maps.',
-        icon: <Navigation size={24} />,
-        steps: [
-          {
-            title: "The World in Your Pocket",
-            content: "Google Maps is a giant, interactive map of the entire world. You can find restaurants, doctors, or your friend's house just by typing.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "Searching for a Place",
-            content: "Try searching for a local park or a grocery store to see it on the map!",
-            interactiveType: 'SIMULATED_MAP',
-            interactiveData: { targetSearch: 'Park' }
-          }
-        ]
-      },
-      {
-        id: 'internet-qr-1',
-        category: 'INTERNET_SKILLS',
-        title: 'QR Codes: The Magic Square',
-        shortDesc: 'Scan those black and white squares to see menus or websites.',
-        icon: <QrCode size={24} />,
-        steps: [
-          {
-            title: "The Magic Square",
-            content: "You see them everywhere—on restaurant tables and magazines. It's a special code that takes you directly to a website without typing.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "Find the Salade Niçoise",
-            content: "Pretend your phone is a scanner. Move the lens over the QR code to open the digital menu!",
-            interactiveType: 'SIMULATED_QR',
-            interactiveData: { target: 'Restaurant Menu' }
-          }
-        ]
-      },
-      {
-        id: 'internet-search-1',
-        category: 'INTERNET_SKILLS',
-        title: 'Searching the Web',
-        shortDesc: 'Learn how to find any information in seconds.',
-        icon: <Search size={24} />,
-        steps: [
-          {
-            title: "Ask the World",
-            content: "Google is like a massive library where you can ask any question. Instead of looking through books, you just type a few keywords.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "Practice a Search",
-            content: "Try typing 'Weather in London' or anything you're curious about to find information.",
-            interactiveType: 'SIMULATED_SEARCH',
-            interactiveData: { placeholder: 'Search for anything...', targetKeywords: ['weather', 'london', 'news', 'food'] }
-          }
-        ]
-      },
-      {
-        id: 'internet-video-1',
-        category: 'INTERNET_SKILLS',
-        title: 'Video Calls',
-        shortDesc: 'See and hear your family live through your screen.',
-        icon: <Video size={24} />,
-        steps: [
-          {
-            title: "Live Connection",
-            content: "Video calls let you see the face of the person you're talking to. It's like they're right there with you in the room.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "Testing Your Gear",
-            content: "Before a call, you must turn on your camera and microphone. Practice by turning both on below.",
-            interactiveType: 'SIMULATED_VIDEO_CALL'
-          }
-        ]
-      },
-      {
-        id: 'ai-lens-1',
-        category: 'AI_BASICS',
-        title: 'The Magic Eye',
-        shortDesc: 'Use your phone to identify anything in the real world.',
-        icon: <Eye size={24} />,
-        steps: [
-          {
-            title: "Your Phone can 'See'",
-            content: "Modern AI can look through your camera and tell you exactly what it's seeing. It's like having an expert in your pocket for plants or landmarks.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "Practice Scanning",
-            content: "Try dragging your phone over the scene. Hover over the flower to see what the AI discovers!",
-            interactiveType: 'SIMULATED_LENS',
-            interactiveData: {
-              backgroundPrompt: "A vibrant garden with a large colorful flower and a bird.",
-              targets: [
-                { x: 50, y: 40, label: "Magnolia Flower", desc: "A beautiful spring bloom." }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        id: 'safety-shopping-1',
-        category: 'SAFETY',
-        title: 'Safe Online Shopping',
-        shortDesc: 'How to buy things online without worrying.',
-        icon: <ShoppingCart size={24} />,
-        steps: [
-          {
-            title: "Look for the Lock",
-            content: "When you see a 'Padlock' icon in the address bar, it means your payment information is encrypted and safe from hackers.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "A Secure Checkout",
-            content: "Notice the padlock below. Practice a safe payment by clicking 'Pay Now'.",
-            interactiveType: 'SECURE_CHECKOUT'
-          }
-        ]
-      },
-      {
-        id: 'safety-scams-1',
-        category: 'SAFETY',
-        title: 'Spotting the "Fake"',
-        shortDesc: 'Protect yourself from tricky emails and messages.',
-        icon: <Ghost size={24} />,
-        steps: [
-          {
-            title: "Urgent! Is it real?",
-            content: "Scammers often try to make you panic. Real banks will almost never ask for your password via email.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "Spot the Mistake",
-            content: "Look at this email: 'Dear Valued Customeer, your account at BankOfAmerrica has been hacked! Click here to fix it immediately.' What looks suspicious?",
-            interactiveType: 'QUIZ',
-            interactiveData: {
-              question: "What is the biggest red flag in that message?",
-              options: ["The friendly greeting", "The spelling mistakes and urgency", "The blue color of the text"],
-              correctIndex: 1
-            }
-          }
-        ]
-      }
-    ],
-    he: [
-      {
-        id: 'internet-social-1',
-        category: 'INTERNET_SKILLS',
-        title: 'מתחברים למשפחה',
-        shortDesc: 'למדו איך להשתמש ברשתות חברתיות כדי לראות תמונות של הנכדים.',
-        icon: <Users size={24} />,
-        steps: [
-          {
-            title: "מהן רשתות חברתיות?",
-            content: "חשבו על רשת חברתית (כמו פייסבוק) כעל מתנ״ס דיגיטלי. זה המקום שבו חברים ומשפחה מפרסמים תמונות ועדכונים.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "אינטראקציה עם פוסטים",
-            content: "כשאתם רואים תמונה שאתם אוהבים, אתם יכולים לעשות 'לייק'. תרגלו על ידי סימון לייק לתמונה של הנכד למטה.",
-            interactiveType: 'SIMULATED_SOCIAL',
-            interactiveData: { type: 'LIKE_PRACTICE' }
-          }
-        ]
-      },
-      {
-        id: 'internet-email-1',
-        category: 'INTERNET_SKILLS',
-        title: 'שליחת אימייל',
-        shortDesc: 'הדרך המודרנית לשלוח מכתב לכל אחד בעולם.',
-        icon: <Mail size={24} />,
-        steps: [
-          {
-            title: "מכתבים דיגיטליים",
-            content: "אימייל הוא כמו מכתב שמגיע מיד. אתם רק צריכים את 'כתובת האימייל' של האדם - שהיא כמו כתובת הבית הדיגיטלית שלו.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "כתבו את ההודעה הראשונה שלכם",
-            content: "בואו נתרגל כתיבת אימייל. מלאו למי זה מיועד, על מה מדובר והודעה למטה.",
-            interactiveType: 'SIMULATED_EMAIL'
-          }
-        ]
-      },
-      {
-        id: 'internet-maps-1',
-        category: 'INTERNET_SKILLS',
-        title: 'למצוא את הדרך',
-        shortDesc: 'לעולם אל תלכו לאיבוד עם מפות דיגיטליות.',
-        icon: <Navigation size={24} />,
-        steps: [
-          {
-            title: "העולם בכיס שלכם",
-            content: "גוגל מפות היא מפה ענקית ואינטראקטיבית של כל העולם. אפשר למצוא מסעדות, רופאים או את הבית של חברים פשוט על ידי הקלדה.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "חיפוש מקום",
-            content: "נסו לחפש פארק מקומי או חנות כדי לראות אותם על המפה!",
-            interactiveType: 'SIMULATED_MAP',
-            interactiveData: { targetSearch: 'פארק' }
-          }
-        ]
-      },
-      {
-        id: 'internet-qr-1',
-        category: 'INTERNET_SKILLS',
-        title: 'קודי QR: ריבוע הקסם',
-        shortDesc: 'סרקו את הריבועים השחורים-לבנים כדי לראות תפריטים.',
-        icon: <QrCode size={24} />,
-        steps: [
-          {
-            title: "ריבוע הקסם",
-            content: "קוד QR הוא סוג של 'ריבוע קסם'. במקום להקליד כתובות ארוכות, פשוט מכוונים אליו את המצלמה.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "מצאו את סלט הניסואז",
-            content: "דמיינו שאתם במסעדה. הזיזו את העדשה מעל הקוד כדי לראות את התפריט!",
-            interactiveType: 'SIMULATED_QR',
-            interactiveData: { target: 'תפריט מסעדה' }
-          }
-        ]
-      },
-      {
-        id: 'internet-search-1',
-        category: 'INTERNET_SKILLS',
-        title: 'חיפוש ברשת',
-        shortDesc: 'למדו איך למצוא כל מידע בשניות.',
-        icon: <Search size={24} />,
-        steps: [
-          {
-            title: "לשאול את העולם",
-            content: "גוגל הוא כמו ספרייה ענקית שבה אפשר לשאול כל שאלה. פשוט מקלידים כמה מילות מפתח.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "תרגול חיפוש",
-            content: "נסו להקליד 'מזג אוויר' או כל דבר שמעניין אתכם כדי למצוא מידע.",
-            interactiveType: 'SIMULATED_SEARCH',
-            interactiveData: { placeholder: 'חפשו כל דבר...', targetKeywords: ['מזג', 'אוויר', 'חדשות', 'אוכל'] }
-          }
-        ]
-      },
-      {
-        id: 'internet-video-1',
-        category: 'INTERNET_SKILLS',
-        title: 'שיחות וידאו',
-        shortDesc: 'ראו ושמעו את המשפחה שלכם בשידור חי דרך המסך.',
-        icon: <Video size={24} />,
-        steps: [
-          {
-            title: "חיבור חי",
-            content: "שיחות וידאו מאפשרות לכם לראות את הפנים של האדם איתו אתם מדברים. זה כאילו הם נמצאים איתכם בחדר.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "בדיקת הציוד שלכם",
-            content: "לפני שיחה, עליכם להפעיל את המצלמה והמיקרופון. תרגלו זאת על ידי הפעלת שניהם למטה.",
-            interactiveType: 'SIMULATED_VIDEO_CALL'
-          }
-        ]
-      },
-      {
-        id: 'ai-lens-1',
-        category: 'AI_BASICS',
-        title: 'עין הקסם',
-        shortDesc: 'השתמשו בטלפון כדי לזהות כל דבר בעולם האמיתי.',
-        icon: <Eye size={24} />,
-        steps: [
-          {
-            title: "הטלפון שלכם יכול 'לראות'",
-            content: "בינה מלאכותית מודרנית יכולה להסתכל דרך המצלמה ולהגיד בדיוק מה היא רואה. זה כמו מומחה בכיס לצמחים או אתרים היסטוריים.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "תרגול סריקה",
-            content: "נסו לגרור את הטלפון מעל הסצנה. עמדו מעל הפרח כדי לראות מה ה-AI מגלה!",
-            interactiveType: 'SIMULATED_LENS',
-            interactiveData: {
-              backgroundPrompt: "A vibrant garden with a large colorful flower and a bird.",
-              targets: [
-                { x: 50, y: 40, label: "פרח מגנוליה", desc: "פריחה אביבית יפהפייה." }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        id: 'safety-shopping-1',
-        category: 'SAFETY',
-        title: 'קניות בטוחות ברשת',
-        shortDesc: 'איך לקנות דברים באינטרנט ללא דאגה.',
-        icon: <ShoppingCart size={24} />,
-        steps: [
-          {
-            title: "חפשו את המנעול",
-            content: "כשאתם רואים אייקון של 'מנעול' בשורת הכתובת, זה אומר שפרטי התשלום שלכם מוצפנים ובטוחים.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "תשלום מאובטח",
-            content: "שימו לב למנעול למטה. תרגלו תשלום בטוח על ידי לחיצה על 'שלם עכשיו'.",
-            interactiveType: 'SECURE_CHECKOUT'
-          }
-        ]
-      },
-      {
-        id: 'safety-scams-1',
-        category: 'SAFETY',
-        title: 'זיהוי "זיופים"',
-        shortDesc: 'הגנו על עצמכם מפני מיילים והודעות מטעים.',
-        icon: <Ghost size={24} />,
-        steps: [
-          {
-            title: "דחוף! האם זה אמיתי?",
-            content: "נוכלים מנסים לעיתים קרובות לגרום לכם להילחץ. בנקים אמיתיים כמעט אף פעם לא יבקשו סיסמה במייל.",
-            interactiveType: 'INFO'
-          },
-          {
-            title: "זהו את הטעות",
-            content: "הסתכלו על המייל הזה: 'לקוח יקרר, חשבונך בבנק הפועלים נפרץ! לחץ כאן לתקן מיד'. מה נראה חשוד?",
-            interactiveType: 'QUIZ',
-            interactiveData: {
-              question: "מהו התמרור האדום הכי גדול בהודעה הזו?",
-              options: ["הברכה הידידותית", "טעויות הכתיב והדחיפות", "הצבע הכחול של הטקסט"],
-              correctIndex: 1
-            }
-          }
-        ]
-      }
-    ],
-    es: [],
-    ru: [],
-    ar: []
-  };
-  return content[lang] || content['en'];
+// Helper function to extract the correct string for the given language.
+export const localize = (textMap: Record<string, string> | string, lang: Language): string => {
+  if (typeof textMap === 'string') {
+    return textMap;
+  }
+  return textMap[lang] || textMap['en'] || '';
 };
 
-export const getLocalizedCategories = (lang: Language): { id: LessonCategory; label: string; icon: React.ReactNode; color: string }[] => {
-  const labels: Record<Language, Record<LessonCategory, string>> = {
-    en: { AI_BASICS: 'AI Simply Explained', INTERNET_SKILLS: 'Everyday Internet', SAFETY: 'Staying Safe' },
-    he: { AI_BASICS: 'בינה מלאכותית בפשטות', INTERNET_SKILLS: 'אינטרנט יומיומי', SAFETY: 'גלישה בטוחה' },
-    es: { AI_BASICS: 'IA explicada fácilmente', INTERNET_SKILLS: 'Internet cotidiano', SAFETY: 'Seguridad en línea' },
-    ru: { AI_BASICS: 'ИИ простыми словами', INTERNET_SKILLS: 'Интернет каждый день', SAFETY: 'Безопасность' },
-    ar: { AI_BASICS: 'الذكاء الاصطناعي ببساطة', INTERNET_SKILLS: 'الإنترنت اليومي', SAFETY: 'البقاء آمناً' }
+// Helper to localize common interactiveData fields.
+const localizeInteractiveData = (data: any, lang: Language): any => {
+  if (!data) return data;
+  const localized = { ...data };
+  if (localized.placeholder && typeof localized.placeholder === 'object') {
+    localized.placeholder = localize(localized.placeholder, lang);
+  }
+  if (localized.suggestions && Array.isArray(localized.suggestions)) {
+    localized.suggestions = localized.suggestions.map((s: any) => typeof s === 'object' ? localize(s, lang) : s);
+  }
+  if (localized.question && typeof localized.question === 'object') {
+    localized.question = localize(localized.question, lang);
+  }
+  if (localized.options && Array.isArray(localized.options)) {
+    localized.options = localized.options.map((o: any) => typeof o === 'object' ? localize(o, lang) : o);
+  }
+  if (localized.response && typeof localized.response === 'object') {
+    localized.response = localize(localized.response, lang);
+  }
+  if (localized.commands && Array.isArray(localized.commands)) {
+    localized.commands = localized.commands.map((c: any) => typeof c === 'object' ? localize(c, lang) : c);
+  }
+  if (localized.targets && Array.isArray(localized.targets)) {
+    localized.targets = localized.targets.map((t: any) => ({
+      ...t,
+      label: typeof t.label === 'object' ? localize(t.label, lang) : t.label
+    }));
+  }
+  // Localize actions array for QR codes
+  if (localized.actions && Array.isArray(localized.actions)) {
+    localized.actions = localized.actions.map((action: any) => ({
+      ...action,
+      label: typeof action.label === 'object' ? localize(action.label, lang) : action.label,
+      overlayTitle: typeof action.overlayTitle === 'object' ? localize(action.overlayTitle, lang) : action.overlayTitle,
+      overlayContent: typeof action.overlayContent === 'object' ? localize(action.overlayContent, lang) : action.overlayContent,
+    }));
+  }
+  // Localize pharmacy fields
+  if (localized.productName && typeof localized.productName === 'object') localized.productName = localize(localized.productName, lang);
+  if (localized.billingPlaceholder && typeof localized.billingPlaceholder === 'object') localized.billingPlaceholder = localize(localized.billingPlaceholder, lang);
+  if (localized.addressPlaceholder && typeof localized.addressPlaceholder === 'object') localized.addressPlaceholder = localize(localized.addressPlaceholder, lang);
+  if (localized.cardPlaceholder && typeof localized.cardPlaceholder === 'object') localized.cardPlaceholder = localize(localized.cardPlaceholder, lang);
+  if (localized.cvvPlaceholder && typeof localized.cvvPlaceholder === 'object') localized.cvvPlaceholder = localize(localized.cvvPlaceholder, lang);
+  if (localized.payButton && typeof localized.payButton === 'object') localized.payButton = localize(localized.payButton, lang);
+
+  return localized;
+};
+
+const findCategoryIcon = (category: LessonCategory) => {
+  switch (category) {
+    case 'AI_BASICS': return <Cpu size={20} />;
+    case 'INTERNET_SKILLS': return <Navigation size={20} />;
+    case 'SAFETY': return <ShieldCheck size={20} />;
+    default: return <Book size={20} />;
+  }
+};
+
+export const getLocalizedCategories = (lang: Language) => {
+  const categories = {
+    AI_BASICS: {
+      id: 'AI_BASICS' as LessonCategory,
+      label: { en: 'AI Basics', he: 'יסודות AI' }[lang] || 'AI Basics',
+      icon: <Cpu size={20} className="text-purple-600" />,
+      color: 'bg-purple-100',
+    },
+    INTERNET_SKILLS: {
+      id: 'INTERNET_SKILLS' as LessonCategory,
+      label: { en: 'Internet Skills', he: 'כישורי אינטרנט' }[lang] || 'Internet Skills',
+      icon: <Navigation size={20} className="text-blue-600" />,
+      color: 'bg-blue-100',
+    },
+    SAFETY: {
+      id: 'SAFETY' as LessonCategory,
+      label: { en: 'Online Safety', he: 'בטיחות ברשת' }[lang] || 'Online Safety',
+      icon: <ShieldCheck size={20} className="text-emerald-600" />,
+      color: 'bg-emerald-100',
+    },
   };
-  const currentLabels = labels[lang] || labels['en'];
-  return [
-    { id: 'AI_BASICS', label: currentLabels.AI_BASICS, icon: <Zap size={20} />, color: 'bg-purple-100 text-purple-700' },
-    { id: 'INTERNET_SKILLS', label: currentLabels.INTERNET_SKILLS, icon: <Radio size={20} />, color: 'bg-green-100 text-green-700' },
-    { id: 'SAFETY', label: currentLabels.SAFETY, icon: <ShieldCheck size={20} />, color: 'bg-red-100 text-red-700' },
+  return Object.values(categories);
+};
+
+export const getLocalizedLessons = (lang: Language): Lesson[] => {
+  const categories = getLocalizedCategories(lang);
+  const allLessonsData = [
+    {
+      id: 'qr-codes',
+      category: 'INTERNET_SKILLS' as LessonCategory,
+      title: { en: 'Scanning QR Codes', he: 'סריקת קודי QR' },
+      shortDesc: { en: 'Master menus, tickets, and tracking.', he: 'שלטו בתפריטים, כרטיסים ומעקב.' },
+      icon: <QrCode size={20} />,
+      steps: [
+        {
+          title: { en: 'What are QR Codes?', he: 'מהם קודי QR?' },
+          content: { en: 'QR codes are smart barcodes you scan with your camera to access websites, menus, or tickets instantly.', he: 'קודי QR הם ברקודים חכמים שסורקים עם המצלמה כדי לגשת לאתרים, תפריטים או כרטיסים באופן מיידי.' },
+        },
+        {
+          title: { en: 'Level 1: Restaurant Menu', he: 'שלב 1: תפריט במסעדה' },
+          content: { en: 'Scan the code on the table. You can view the menu, read reviews, or join the waitlist.', he: 'סרקו את הקוד שעל השולחן. תוכלו לצפות בתפריט, לקרוא ביקורות או להצטרף לרשימת ההמתנה.' },
+          interactiveType: 'SIMULATED_QR',
+          interactiveData: {
+            backgroundPrompt: "A high-quality photo of a wooden restaurant table. In the center of the table, there is a prominent square QR code printed on a small acrylic stand. Modern cafe vibe.",
+            actions: [
+              {
+                id: 'VIEW_MENU',
+                label: { en: 'View Menu', he: 'תפריט' },
+                iconName: 'FileText',
+                overlayTitle: { en: 'Today\'s Specials', he: 'המיוחדים של היום' },
+                overlayContent: { 
+                  en: `### Starters\n**Fresh Garden Salad** — $12\n_Organic greens, cherry tomatoes, and house vinaigrette_\n\n### Main Course\n**Hearty Beef Stew** — $22\n_Slow-cooked with root vegetables and fresh herbs_`, 
+                  he: `### מנות ראשונות\n**סלט ירוק טרי** — 42 ₪\n_עלים אורגניים, עגבניות שרי ורוטב ויניגרט ביתי_\n\n### מנות עיקריות\n**תבשיל בקר דשן** — 84 ₪\n_בישול איטי עם ירקות שורש ועשבי תיבול טריים_` 
+                },
+              },
+              {
+                id: 'REVIEWS',
+                label: { en: 'Reviews', he: 'ביקורות' },
+                iconName: 'Star',
+                overlayTitle: { en: 'Customer Reviews', he: 'ביקורות לקוחות' },
+                overlayContent: { 
+                  en: `### Top Rated\n**Goldie:** "The best service I've had in years! The staff was so patient and kind. 5/5"`, 
+                  he: `### דירוג גבוה\n**גולדי:** "השירות הטוב ביותר שקיבלתי מזה שנים! הצוות היה כל כך סבלני ואדיב. 5/5"` 
+                },
+              },
+              {
+                id: 'WAITLIST',
+                label: { en: 'Waitlist', he: 'תור' },
+                iconName: 'Users',
+                overlayTitle: { en: 'Virtual Waitlist', he: 'תור וירטואלי' },
+                overlayContent: { 
+                  en: `**Current Wait:** 5 mins\n\nYou are next in line for a table for 2! We'll text you when it's ready.`, 
+                  he: `**זמן המתנה:** 5 דקות\n\nאתה הבא בתור לשולחן ל-2! נשלח לך הודעה כשהוא יהיה מוכן.` 
+                },
+              },
+            ]
+          },
+        },
+        {
+          title: { en: 'Level 2: Museum Entry', he: 'שלב 2: כניסה למוזיאון' },
+          content: { en: 'Scan your digital ticket to enter. Explore audio guides and exhibition maps.', he: 'סרקו את הכרטיס הדיגיטלי שלכם כדי להיכנס. חקרו מדריכים קוליים ומפות תערוכה.' },
+          interactiveType: 'SIMULATED_QR',
+          interactiveData: {
+            backgroundPrompt: "A photo of a modern museum entrance. A sleek metal pedestal with a glowing scanner screen is visible. The background shows a blurry art gallery.",
+            actions: [
+              {
+                id: 'SCAN_TICKET',
+                label: { en: 'Scan Ticket', he: 'סרוק כרטיס' },
+                iconName: 'Ticket',
+                overlayTitle: { en: 'Ticket Valid!', he: 'כרטיס בתוקף!' },
+                overlayContent: { 
+                  en: `**Entry Granted:** 1 Adult\n\nEnjoy your visit to the Museum of Modern Art!`, 
+                  he: `**הכניסה אושרה:** מבוגר 1\n\nתהנו מהביקור במוזיאון לאמנות מודרנית!` 
+                },
+              },
+              {
+                id: 'AUDIO_GUIDE',
+                label: { en: 'Audio Guide', he: 'מדריך קולי' },
+                iconName: 'Headphones',
+                overlayTitle: { en: 'Museum Audio Guide', he: 'מדריך קולי למוזיאון' },
+                overlayContent: { 
+                  en: `### Now Playing\n**Chapter 1:** The Renaissance Era\n_Listen as our curator explains the techniques of the masters._`, 
+                  he: `### מנגן כעת\n**פרק 1:** עידן הרנסנס\n_האזינו לאוצרת המסבירה את הטכניקות של גדולי האמנים._` 
+                },
+              },
+              {
+                id: 'VIEW_MAP',
+                label: { en: 'Venue Map', he: 'מפת המקום' },
+                iconName: 'MapIcon',
+                overlayTitle: { en: 'Museum Guide', he: 'מדריך המוזיאון' },
+                overlayContent: { 
+                  en: `### Floor Plan\n* **Level 1:** Impressionism\n* **Level 2:** Sculpture Garden`, 
+                  he: `### תוכנית קומות\n* **קומה 1:** אימפרסיוניזם\n* **קומה 2:** גן הפסלים` 
+                },
+              },
+              {
+                id: 'GIFT_SHOP',
+                label: { en: 'Gift Shop', he: 'חנות מתנות' },
+                iconName: 'Gift',
+                overlayTitle: { en: 'Museum Shop', he: 'חנות המוזיאון' },
+                overlayContent: { 
+                  en: `### Today's Offers\n* **Postcard Set:** $5\n* **Art Book:** 20% Discount for Seniors!`, 
+                  he: `### המבצעים שלנו\n* **סט גלויות:** 18 ₪\n* **ספר אמנות:** 20% הנחה לבני גיל הזהב!` 
+                },
+              },
+            ]
+          },
+        },
+        {
+          title: { en: 'Level 3: Package Tracking', he: 'שלב 3: מעקב חבילה' },
+          content: { en: 'Scan the code on the delivery box to track your parcel, send feedback, or contact the driver.', he: 'סרקו את הקוד שעל קופסת המשלוח כדי לעקוב אחר החבילה, לשלוח משוב או ליצור קשר עם השליח.' },
+          interactiveType: 'SIMULATED_QR',
+          interactiveData: {
+            backgroundPrompt: "A photo of a cardboard delivery package sitting on a front porch rug. A large QR code sticker is on the box.",
+            actions: [
+              {
+                id: 'TRACK',
+                label: { en: 'Track Status', he: 'מצב משלוח' },
+                iconName: 'Package',
+                overlayTitle: { en: 'Tracking Info', he: 'פרטי מעקב' },
+                overlayContent: { 
+                  en: `**Status:** Delivered to Porch\n**Time:** 2:15 PM today`, 
+                  he: `**סטטוס:** נמסר לכניסה\n**שעה:** 14:15 היום` 
+                },
+              },
+              {
+                id: 'FEEDBACK',
+                label: { en: 'Rate Delivery', he: 'דרג משלוח' },
+                iconName: 'Star',
+                overlayTitle: { en: 'How did we do?', he: 'איך היינו?' },
+                overlayContent: { 
+                  en: `Thank you for your order! Please rate your experience: ⭐⭐⭐⭐⭐`, 
+                  he: `תודה על ההזמנה! נשמח לדירוג החוויה שלך: ⭐⭐⭐⭐⭐` 
+                },
+              },
+              {
+                id: 'CONTACT',
+                label: { en: 'Call Driver', he: 'צור קשר' },
+                iconName: 'Phone',
+                overlayTitle: { en: 'Contact Courier', he: 'יצירת קשר' },
+                overlayContent: { 
+                  en: `Connecting you to your driver... Your courier "Dan" is in your area.`, 
+                  he: `מערכת יוצרת קשר עם השליח... השליח "דני" נמצא באזורך.` 
+                },
+              },
+              {
+                id: 'REPORT',
+                label: { en: 'Report Issue', he: 'דווח' },
+                iconName: 'ShieldAlert',
+                overlayTitle: { en: 'Help Center', he: 'מרכז עזרה' },
+                overlayContent: { 
+                  en: `Need help? Contact our support line or report if the box is damaged.`, 
+                  he: `צריכים עזרה? צרו קשר עם מוקד התמיכה או דווחו אם הקופסה ניזוקה.` 
+                },
+              },
+            ]
+          },
+        },
+        {
+          title: { en: 'Level 4: Library Return', he: 'שלב 4: החזרת ספר' },
+          content: { en: 'Scan the book cover to return it. Check your account status or upcoming events.', he: 'סרקו את כריכת הספר כדי להחזיר אותו. בדקו את מצב החשבון או אירועים קרובים.' },
+          interactiveType: 'SIMULATED_QR',
+          interactiveData: {
+            backgroundPrompt: "A high-resolution photo of a library book titled 'The Old Man and the Sea'. A library QR sticker is attached to the back cover.",
+            actions: [
+              {
+                id: 'RETURN',
+                label: { en: 'Return Book', he: 'החזר ספר' },
+                iconName: 'Book',
+                overlayTitle: { en: 'Book Returned!', he: 'הספר הוחזר!' },
+                overlayContent: { 
+                  en: `**Confirmed:** "The Old Man and the Sea"\n\nThank you for returning it on time!`, 
+                  he: `**אושר:** "הזקן והים"\n\nתודה שהחזרת בזמן!` 
+                },
+              },
+              {
+                id: 'ACCOUNT',
+                label: { en: 'My Account', he: 'החשבון שלי' },
+                iconName: 'UserCheck',
+                overlayTitle: { en: 'Library Account', he: 'סטטוס חשבון' },
+                overlayContent: { 
+                  en: `**Items Out:** 1\n**Overdue:** 0\n**Next Due Date:** Feb 20, 2025`, 
+                  he: `**ספרים אצלך:** 1\n**איחורים:** 0\n**תאריך החזרה קרוב:** 20 בפברואר, 2025` 
+                },
+              },
+              {
+                id: 'CALENDAR',
+                label: { en: 'Events', he: 'אירועים' },
+                iconName: 'Calendar',
+                overlayTitle: { en: 'Library Calendar', he: 'לוח אירועים' },
+                overlayContent: { 
+                  en: `### Join Us\n* **Mon:** Knitting Workshop (10 AM)\n* **Wed:** Digital Skills for Seniors (2 PM)`, 
+                  he: `### בואו להשתתף\n* **שני:** סדנת סריגה (10:00)\n* **רביעי:** כישורים דיגיטליים לגיל הזהב (14:00)` 
+                },
+              },
+              {
+                id: 'SUGGEST',
+                label: { en: 'Similar Books', he: 'ספרים דומים' },
+                iconName: 'Sparkles',
+                overlayTitle: { en: 'You Might Like...', he: 'אולי תאהבו גם...' },
+                overlayContent: { 
+                  en: `### Recommended for You\n* **"For Whom the Bell Tolls"** by Ernest Hemingway\n* **"Moby Dick"** by Herman Melville`, 
+                  he: `### מומלץ עבורך\n* **"למי צלצלו הפעמונים"** מאת ארנסט המינגוויי\n* **"מובי דיק"** מאת הרמן מלוויל` 
+                },
+              },
+            ]
+          },
+        },
+      ],
+    },
+    {
+      id: 'photo-journey',
+      category: 'INTERNET_SKILLS' as LessonCategory,
+      title: { en: 'The Secret Life of a Photo', he: 'החיים הסודיים של תמונה' },
+      shortDesc: { en: 'From camera to message.', he: 'מהמצלמה ועד להודעה.' },
+      icon: <Camera size={20} />,
+      steps: [
+        { title: { en: 'Capture', he: 'צילום' }, content: { en: 'Learn how to take and share photos.', he: 'למדו איך לצלם ולשתף תמונות.' } },
+        { title: { en: 'Try it', he: 'נסו זאת' }, content: { en: 'Interactive camera experience.', he: 'חוויית מצלמה אינטראקטיבית.' }, interactiveType: 'SIMULATED_PHOTO_JOURNEY' },
+      ],
+    },
+    {
+      id: 'digital-pharmacy',
+      category: 'INTERNET_SKILLS' as LessonCategory,
+      title: { en: 'The Digital Pharmacy Refill', he: 'המרשם הדיגיטלי: חידוש תרופות' },
+      shortDesc: { en: 'Learn to order medication refills from your phone.', he: 'למדו להזמין חידוש תרופות מהטלפון.' },
+      icon: <Pill size={20} />,
+      steps: [
+        { title: { en: 'No More Waiting', he: 'לא מחכים יותר' }, content: { en: 'You can refill prescriptions online safely.', he: 'ניתן לחדש מרשמים באינטרנט בבטחה.' } },
+        { title: { en: 'Place Your Order', he: 'בצעו את ההזמנה' }, content: { en: 'Enter the RX number and choose delivery.', he: 'הזינו את מספר המרשם ובחרו משלוח.' }, interactiveType: 'SIMULATED_PHARMACY' },
+      ],
+    },
+    {
+      id: 'online-maps',
+      category: 'INTERNET_SKILLS' as LessonCategory,
+      title: { en: 'Finding Your Way', he: 'מצאו את דרככם' },
+      shortDesc: { en: 'Explore the world with digital maps.', he: 'חקרו את העולם עם מפות דיגיטליות.' },
+      icon: <MapIcon size={20} />,
+      steps: [
+        { title: { en: 'Explore', he: 'חקרו' }, content: { en: 'Online maps help you find anything nearby.', he: 'מפות אונליין עוזרות לכם למצוא הכל בסביבה.' } },
+        { title: { en: 'Search', he: 'חפשו' }, content: { en: 'Try searching for a local spot.', he: 'נסו לחפש מקום מקומי.' }, interactiveType: 'SIMULATED_MAP', interactiveData: { searchPlaceholder: { en: 'Search...', he: 'חפש...' } } },
+      ],
+    },
+    {
+      id: 'online-shopping',
+      category: 'INTERNET_SKILLS' as LessonCategory,
+      title: { en: 'Your First Online Purchase', he: 'הרכישה המקוונת הראשונה' },
+      shortDesc: { en: 'Learn to safely buy items online.', he: 'למדו לקנות בבטחה באינטרנט.' },
+      icon: <ShoppingCart size={20} />,
+      steps: [
+        { title: { en: 'Shopping', he: 'קניות' }, content: { en: 'Add items to your cart safely.', he: 'הוסיפו פריטים לעגלה בבטחה.' } },
+        { title: { en: 'Checkout', he: 'תשלום' }, content: { en: 'Enter details for a secure payment.', he: 'הזינו פרטים לתשלום מאובטח.' }, interactiveType: 'SECURE_CHECKOUT', interactiveData: { productName: { en: 'Guide Book', he: 'ספר הדרכה' }, productPrice: '$19.99', billingPlaceholder: { en: 'Name', he: 'שם' }, addressPlaceholder: { en: 'Address', he: 'כתובת' }, cardPlaceholder: { en: 'Card', he: 'כרטיס' }, cvvPlaceholder: { en: 'CVV', he: 'קוד' }, payButton: { en: 'Pay', he: 'שלם' } } },
+      ],
+    },
+    {
+      id: 'spotting-scams',
+      category: 'SAFETY' as LessonCategory,
+      title: { en: 'Staying Safe: Spotting Scams', he: 'נשארים בטוחים: זיהוי הונאות' },
+      shortDesc: { en: 'Identify fake messages and AI fakes.', he: 'זהו הודעות מזויפות וזיופי AI.' },
+      icon: <ShieldAlert size={20} />,
+      steps: [
+        { title: { en: 'Detectives', he: 'בלשים' }, content: { en: 'Learn how to spot digital tricks.', he: 'למדו לזהות טריקים דיגיטליים.' } },
+        { title: { en: 'Is it Real?', he: 'זה אמיתי?' }, content: { en: 'Move the lens to find AI mistakes.', he: 'הזיזו את העדשה למציאת טעויות AI.' }, interactiveType: 'SIMULATED_LENS', interactiveData: { backgroundPrompt: "A photo of people where one person has 6 fingers and the clock is warped.", targets: [{ x: 30, y: 55, label: { en: 'AI Error!', he: 'טעות AI!' } }] } },
+        { title: { en: 'Quiz', he: 'בוחן' }, content: { en: 'What is the safest choice?', he: 'מהי הבחירה הבטוחה ביותר?' }, interactiveType: 'QUIZ', interactiveData: { question: { en: 'Stranger asks for money?', he: 'זר מבקש כסף?' }, options: [{ en: 'Send money', he: 'שלח כסף' }, { en: 'Call family to verify', he: 'התקשר למשפחה לוודא' }], correctAnswer: 1 } },
+      ],
+    },
+    {
+      id: 'ai-chat-intro',
+      category: 'AI_BASICS' as LessonCategory,
+      title: { en: 'Talking to AI', he: 'שיחה עם AI' },
+      shortDesc: { en: 'Talk to an AI assistant.', he: 'שוחחו עם עוזר AI.' },
+      icon: findCategoryIcon('AI_BASICS'),
+      steps: [
+        { title: { en: 'Introduction', he: 'הקדמה' }, content: { en: 'AI can help you with anything.', he: 'AI יכול לעזור לכם בכל דבר.' } },
+        { title: { en: 'Chatting', he: 'שיחה' }, content: { en: 'Type your question.', he: 'הקלידו את שאלתכם.' }, interactiveType: 'LIVE_AI_CHAT', interactiveData: { placeholder: { en: 'Type here...', he: 'הקלידו כאן...' } } },
+      ],
+    },
+    {
+      id: 'ai-image-analysis',
+      category: 'AI_BASICS' as LessonCategory,
+      title: { en: 'AI Explains Pictures', he: 'AI מסביר תמונות' },
+      shortDesc: { en: 'How AI sees the world.', he: 'איך ה-AI רואה את העולם.' },
+      icon: <Eye size={20} />,
+      steps: [
+        { title: { en: 'AI Sight', he: 'ראיית AI' }, content: { en: 'AI can understand photos.', he: 'AI יכול להבין תמונות.' } },
+        { title: { en: 'Identify', he: 'זיהוי' }, content: { en: 'Move the lens to identify objects.', he: 'הזיזו את העדשה לזיהוי חפצים.' }, interactiveType: 'SIMULATED_LENS', interactiveData: { backgroundPrompt: "A vibrant market scene with fruits.", targets: [{ x: 25, y: 40, label: { en: 'Apples', he: 'תפוחים' } }] } },
+      ],
+    },
+    {
+      id: 'bus-payments',
+      category: 'INTERNET_SKILLS' as LessonCategory,
+      title: { en: 'Digital Bus Payments', he: 'תשלום באוטובוס' },
+      shortDesc: { en: 'Pay for your ride with your phone.', he: 'שלמו על הנסיעה עם הטלפון.' },
+      icon: <Bus size={20} />,
+      steps: [
+        { title: { en: 'No Cash?', he: 'אין מזומן?' }, content: { en: 'Many buses now use QR codes for payment.', he: 'אוטובוסים רבים משתמשים כיום בקודי QR לתשלום.' } },
+        { title: 'Pay', content: 'Scan the bus pole code.', interactiveType: 'SIMULATED_BUS_PAYMENT', interactiveData: { backgroundPrompt: "City bus interior with a yellow pole and QR code." } },
+      ],
+    }
   ];
+
+  return allLessonsData.map(lesson => ({
+    ...lesson,
+    title: localize(lesson.title, lang),
+    shortDesc: localize(lesson.shortDesc, lang),
+    steps: lesson.steps.map(step => ({
+      ...step,
+      title: localize(step.title, lang),
+      content: localize(step.content, lang),
+      interactiveData: localizeInteractiveData(step.interactiveData, lang)
+    }))
+  }));
 };

@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 
 const LaTeX: React.FC<{ text: string }> = ({ text }) => {
@@ -32,7 +33,7 @@ export const Markdown: React.FC<{ content: string; className?: string }> = ({ co
         return <LaTeX key={i} text={part.slice(1, -1)} />;
       }
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} className="font-black text-slate-900 decoration-blue-200 decoration-2">{part.slice(2, -2)}</strong>;
+        return <strong key={i} className="font-black text-blue-700">{part.slice(2, -2)}</strong>;
       }
       return <span key={i}>{part}</span>;
     });
@@ -46,10 +47,10 @@ export const Markdown: React.FC<{ content: string; className?: string }> = ({ co
 
         // Headers
         if (trimmed.startsWith('### ')) {
-          return <h3 key={i} className="text-2xl font-black text-slate-800 pt-4 pb-1 border-b-2 border-slate-50">{renderInline(trimmed.slice(4))}</h3>;
+          return <h3 key={i} className="text-2xl font-black pt-4 pb-1 border-b-2 border-slate-50/10">{renderInline(trimmed.slice(4))}</h3>;
         }
         if (trimmed.startsWith('## ')) {
-          return <h2 key={i} className="text-3xl font-black text-slate-900 pt-6 pb-2 border-b-4 border-slate-100">{renderInline(trimmed.slice(3))}</h2>;
+          return <h2 key={i} className="text-3xl font-black pt-6 pb-2 border-b-4 border-slate-100/10">{renderInline(trimmed.slice(3))}</h2>;
         }
 
         // Bullet points
@@ -57,14 +58,14 @@ export const Markdown: React.FC<{ content: string; className?: string }> = ({ co
           return (
             <div key={i} className="flex items-start gap-4 pl-4 group">
               <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-2.5 flex-shrink-0 group-hover:scale-125 transition-transform" />
-              <div className="flex-1 text-xl leading-relaxed text-slate-700">{renderInline(trimmed.slice(2))}</div>
+              <div className="flex-1 text-xl leading-relaxed">{renderInline(trimmed.slice(2))}</div>
             </div>
           );
-        }
+        } // Fixed: Removed the extra ');' that caused the scope error.
 
         // Standard Paragraph
         return (
-          <p key={i} className="text-xl leading-relaxed text-slate-700 font-medium">
+          <p key={i} className="text-xl leading-relaxed font-medium">
             {renderInline(line)}
           </p>
         );

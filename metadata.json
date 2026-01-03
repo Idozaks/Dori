@@ -1,5 +1,7 @@
 {
   "name": "Dori AI",
   "description": "An accessible, interactive learning platform designed to help the elderly master the internet and modern AI tools through simple, guided experiences.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "geolocation"
+  ]
 }

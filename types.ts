@@ -2,11 +2,14 @@
 import React from 'react';
 
 export enum ViewState {
+  LANDING = 'LANDING',
   HOME = 'HOME',
+  DASHBOARD = 'DASHBOARD',
   LESSON_HUB = 'LESSON_HUB',
   LESSON_DETAIL = 'LESSON_DETAIL',
   CHAT = 'CHAT',
-  IMAGE_ANALYZE = 'IMAGE_ANALYZE'
+  IMAGE_ANALYZE = 'IMAGE_ANALYZE',
+  VOICE_BUDDY = 'VOICE_BUDDY'
 }
 
 export type Language = 'en' | 'he' | 'es' | 'ru' | 'ar';
@@ -16,6 +19,8 @@ export interface Message {
   role: 'user' | 'model';
   text: string;
   isThinking?: boolean;
+  // Optional: to store grounding URLs if any
+  groundingUrls?: { uri: string; title?: string }[];
 }
 
 export type LessonCategory = 'AI_BASICS' | 'INTERNET_SKILLS' | 'SAFETY';
@@ -23,7 +28,7 @@ export type LessonCategory = 'AI_BASICS' | 'INTERNET_SKILLS' | 'SAFETY';
 export interface LessonStep {
   title: string;
   content: string;
-  interactiveType?: 'SIMULATED_EMAIL' | 'SIMULATED_SEARCH' | 'SIMULATED_VIDEO_CALL' | 'SECURE_CHECKOUT' | 'SIMULATED_QR' | 'SIMULATED_VOICE' | 'SIMULATED_MAP' | 'QUIZ' | 'INFO' | 'SIMULATED_LENS' | 'SIMULATED_SOCIAL';
+  interactiveType?: 'SIMULATED_EMAIL' | 'SIMULATED_SEARCH' | 'SIMULATED_VIDEO_CALL' | 'SECURE_CHECKOUT' | 'SIMULATED_QR' | 'SIMULATED_VOICE' | 'SIMULATED_MAP' | 'QUIZ' | 'INFO' | 'SIMULATED_LENS' | 'SIMULATED_SOCIAL' | 'SIMULATED_BUS_PAYMENT' | 'LIVE_AI_CHAT' | 'SIMULATED_IMAGE_GENERATION' | 'SIMULATED_IMAGE_EDITING' | 'SIMULATED_PHOTO_JOURNEY' | 'SIMULATED_PHARMACY';
   interactiveData?: any;
 }
 
@@ -36,10 +41,23 @@ export interface Lesson {
   steps: LessonStep[];
 }
 
-export interface UserProgress {
+export interface UserAccount {
+  id: string;
+  name: string;
+  avatar: string;
   completedLessonIds: string[];
   selectedInterests: LessonCategory[];
   preferredLanguage: Language;
 }
 
+export interface UserProgress {
+  accounts: UserAccount[];
+  currentAccountId: string | null;
+  isAuthenticated: boolean;
+}
+
 export type ImageSize = '1K' | '2K' | '4K';
+
+export type TTSVoiceName = 'Zephyr' | 'Kore' | 'Puck' | 'Charon' | 'Fenrir';
+
+export type CachedImageMap = Record<string, string | null>;
