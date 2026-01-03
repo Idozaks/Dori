@@ -118,9 +118,9 @@ export const UI_STRINGS: Record<Language, any> = {
     reviews: 'Reviews',
     joinWaitlist: 'Join Waitlist',
     todaysSpesials: 'Today\'s Specials',
-    salad: 'Fresh Salad', 
+    salad: 'Fresh Salad',
     saladDescription: 'Fresh greens, tuna, and olives',
-    beefStew: 'Hearty Beef Stew', 
+    beefStew: 'Hearty Beef Stew',
     beefDescription: 'Classic beef stew, slow-cooked to perfection',
     review1: 'The best service I\'ve had in years! The staff was so patient and kind.',
     review2: 'Food was delicious and the atmosphere was very peaceful. Highly recommend!',
@@ -172,7 +172,7 @@ export const UI_STRINGS: Record<Language, any> = {
     completePurchase: 'Complete Purchase',
     purchaseComplete: 'Purchase Complete!',
     thankYouForOrder: 'Thank You For Your Order. It Will Be Shipped Soon!',
-    addedToCartSuccess: 'Item added to cart!', 
+    addedToCartSuccess: 'Item added to cart!',
     understandingSocialMedia: 'Understanding Social Media Posts',
     understandingSocialMediaShortDesc: 'Learn how to interact with posts, like, and comment on social media.',
     connectingWithFriends: 'Connecting with Friends Online',
@@ -331,6 +331,19 @@ export const UI_STRINGS: Record<Language, any> = {
     stopListening: 'Stop Listening',
     simulate: 'Simulate',
     simulateVoiceCommandPlaceholder: 'Type command to simulate...', // Added for completeness, if ever used
+    // Engagement strings
+    dailyStreak: 'Daily Streak',
+    days: 'Days',
+    keepTheStreak: 'Log in tomorrow to keep your streak alive!',
+    newBadgeUnlocked: 'New Badge Unlocked!',
+    earnedBadgesTitle: 'Your Badges',
+    dailyTipTitle: 'Master Tip of the Day',
+    dailyTipContent: 'Did you know? You can ask the AI Buddy to explain any photo you take. Just tap "Explain Photos" on your dashboard!',
+    badges: {
+      AI_BASICS: 'AI Explorer',
+      INTERNET_SKILLS: 'Web Master',
+      SAFETY: 'Safety Shield',
+    }
   },
   he: {
     home: 'בית',
@@ -502,7 +515,7 @@ export const UI_STRINGS: Record<Language, any> = {
     completePurchase: 'סיים רכישה',
     purchaseComplete: 'רכישה הושלמה!',
     thankYouForOrder: 'תודה על הזמנתכם. היא תישלח בקרוב!',
-    addedToCartSuccess: 'הפריט נוסף לעגלה!', 
+    addedToCartSuccess: 'הפריט נוסף לעגלה!',
     understandingSocialMedia: 'הבנת פוסטים ברשתות חברתיות',
     understandingSocialMediaShortDesc: 'למדו איך לקיים אינטראקציה עם פוסטים, לעשות לייק ולהגיב ברשתות חברתיות.',
     connectingWithFriends: 'מתחברים עם חברים אונליין',
@@ -661,6 +674,19 @@ export const UI_STRINGS: Record<Language, any> = {
     stopListening: 'הפסק האזנה',
     simulate: 'הדמה',
     simulateVoiceCommandPlaceholder: 'הקלד פקודה לדמות...', // Added for completeness, if ever used
+    // Engagement strings
+    dailyStreak: 'רצף יומי',
+    days: 'ימים',
+    keepTheStreak: 'היכנסו מחר כדי לשמור על הרצף שלכם!',
+    newBadgeUnlocked: 'זכיתם בתג חדש!',
+    earnedBadgesTitle: 'התגים שלכם',
+    dailyTipTitle: 'טיפ המומחים של היום',
+    dailyTipContent: 'הידעתם? אתם יכולים לבקש מחבר ה-AI להסביר כל תמונה שצילמתם. פשוט הקישו על "הסבר תמונות" במסך הבית!',
+    badges: {
+      AI_BASICS: 'חוקר AI',
+      INTERNET_SKILLS: 'מאסטר רשת',
+      SAFETY: 'מגן בטיחות',
+    }
   },
   es: {},
   ru: {},

@@ -6,12 +6,13 @@ import { Language, UserAccount } from '../types';
 import { ProgressBar } from '../components/ProgressBar';
 import { getLocalizedLessons, getLocalizedCategories } from '../data/lessons';
 import { Sparkles, BookOpen, Camera, Search, GraduationCap, Globe } from 'lucide-react';
+import { EngagementDisplay } from '../components/EngagementDisplay';
 
 const Avatar = ({ seed, className }: { seed: string, className?: string }) => {
   const isDoris = seed === 'doris';
   const isSolomon = seed === 'solomon';
   const isGoldie = seed === 'goldie';
-  
+
   return (
     <div className={`aspect-square overflow-hidden bg-slate-100 rounded-full flex items-center justify-center ${className}`}>
       {isDoris && (
@@ -64,11 +65,11 @@ interface DashboardProps {
   onChangeLanguage: () => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ 
-  onNavigateToLessons, 
-  onNavigateToChat, 
-  onNavigateToAnalyze, 
-  progress, 
+export const Dashboard: React.FC<DashboardProps> = ({
+  onNavigateToLessons,
+  onNavigateToChat,
+  onNavigateToAnalyze,
+  progress,
   lang,
   onChangeLanguage
 }) => {
@@ -78,7 +79,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const totalLessons = LESSONS.length;
   const completedLessons = progress.completedLessonIds.length;
-  
+
   const accountId = progress.id.toLowerCase();
   const tag = accountId.includes('doris') ? t.dorisTag : accountId.includes('solomon') ? t.solomonTag : t.goldieTag;
 
@@ -95,7 +96,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <h1 className="text-4xl sm:text-5xl font-black text-slate-800 leading-tight">
             {t.welcomeToDashboard} <span className="text-blue-600">{progress.name}</span>!
           </h1>
-          <button 
+          <button
             onClick={onChangeLanguage}
             className="inline-flex items-center gap-2 text-blue-500 font-black text-sm uppercase tracking-widest hover:text-blue-700 transition-colors"
           >
@@ -104,22 +105,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
+      <EngagementDisplay user={progress} lang={lang} />
+
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Button 
-          onClick={onNavigateToLessons} 
+        <Button
+          onClick={onNavigateToLessons}
           className="!py-10 !text-2xl !rounded-[2.5rem] !bg-blue-600 hover:!bg-blue-700 !border-blue-800"
         >
           <BookOpen size={32} /> {t.myLessons}
         </Button>
-        <Button 
-          onClick={onNavigateToChat} 
+        <Button
+          onClick={onNavigateToChat}
           className="!py-10 !text-2xl !rounded-[2.5rem] !bg-green-600 hover:!bg-green-700 !border-green-800"
         >
           <Sparkles size={32} /> {t.askAI}
         </Button>
-        <Button 
-          onClick={onNavigateToAnalyze} 
+        <Button
+          onClick={onNavigateToAnalyze}
           className="!py-10 !text-2xl !rounded-[2.5rem] !bg-orange-600 hover:!bg-orange-700 !border-orange-800"
         >
           <Camera size={32} /> {t.explainPhotos}

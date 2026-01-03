@@ -49,7 +49,7 @@ function App() {
   const langMenuRef = useRef<HTMLDivElement>(null);
 
   const activeUser = userProgress.accounts.find(a => a.id === userProgress.currentAccountId);
-  
+
   const effectiveLanguage = displayLanguage;
   const isRTL = effectiveLanguage === 'he' || effectiveLanguage === 'ar';
   const t = UI_STRINGS[effectiveLanguage];
@@ -88,7 +88,7 @@ function App() {
   useEffect(() => {
     const pregenerateImages = async () => {
       const promises = BACKGROUND_IMAGE_PROMPTS.map(async (prompt) => {
-        try { const imageUrl = await generateNanoBananaImage(prompt, { lang: effectiveLanguage }); return { prompt, imageUrl }; } 
+        try { const imageUrl = await generateNanoBananaImage(prompt, { lang: effectiveLanguage }); return { prompt, imageUrl }; }
         catch (e) { return { prompt, imageUrl: null }; }
       });
       const results = await Promise.allSettled(promises);
@@ -110,19 +110,70 @@ function App() {
     }
   };
 
-  const handleLogin = (account: UserAccount) => { 
-    setUserProgress(prev => ({ ...prev, currentAccountId: account.id, isAuthenticated: true })); 
-    setDisplayLanguage(account.preferredLanguage); 
+  const handleLogin = (account: UserAccount) => {
+    const today = new Date().toISOString().split('T')[0];
+    const lastLogin = account.lastLoginDate;
+    let newStreak = account.streakCount || 0;
+
+    if (!lastLogin) {
+      newStreak = 1;
+    } else {
+      const lastDate = new Date(lastLogin);
+      const todayDate = new Date(today);
+      const diffTime = Math.abs(todayDate.getTime() - lastDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        newStreak += 1;
+      } else if (diffDays > 1) {
+        newStreak = 1;
+      }
+      // If diffDays is 0, it means the user logged in again on the same day, keep the current streak.
+    }
+
+    setUserProgress(prev => ({
+      ...prev,
+      currentAccountId: account.id,
+      isAuthenticated: true,
+      accounts: prev.accounts.map(a => a.id === account.id ? { ...a, lastLoginDate: today, streakCount: newStreak } : a)
+    }));
+    setDisplayLanguage(account.preferredLanguage);
   };
-  
+
   const handleSwitchAccount = () => setUserProgress(prev => ({ ...prev, isAuthenticated: false, currentAccountId: null }));
   const handleLessonSelect = (id: string) => { setActiveLessonId(id); setCurrentView(ViewState.LESSON_DETAIL); };
 
   const handleFinishLesson = (id: string) => {
-    setUserProgress(prev => ({
-      ...prev,
-      accounts: prev.accounts.map(a => a.id === prev.currentAccountId ? { ...a, completedLessonIds: a.completedLessonIds.includes(id) ? a.completedLessonIds : [...a.completedLessonIds, id] } : a)
-    }));
+    setUserProgress(prev => {
+      const activeAcc = prev.accounts.find(a => a.id === prev.currentAccountId);
+      if (!activeAcc) return prev;
+
+      const newCompleted = activeAcc.completedLessonIds.includes(id)
+        ? activeAcc.completedLessonIds
+        : [...activeAcc.completedLessonIds, id];
+
+      // Check for badge completion
+      const ALL_LESSONS = getLocalizedLessons(effectiveLanguage);
+      const lesson = ALL_LESSONS.find(l => l.id === id);
+      let newBadges = activeAcc.earnedBadges || [];
+
+      if (lesson) {
+        const category = lesson.category;
+        const catLessons = ALL_LESSONS.filter(l => l.category === category);
+        const isCatComplete = catLessons.every(l => newCompleted.includes(l.id));
+
+        if (isCatComplete && !newBadges.includes(category)) {
+          newBadges = [...newBadges, category];
+        }
+      }
+
+      return {
+        ...prev,
+        accounts: prev.accounts.map(a => a.id === prev.currentAccountId
+          ? { ...a, completedLessonIds: newCompleted, earnedBadges: newBadges }
+          : a)
+      };
+    });
     setCurrentView(ViewState.LESSON_HUB);
     setActiveLessonId(null);
   };
