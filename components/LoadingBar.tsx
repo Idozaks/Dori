@@ -1,77 +1,67 @@
-
-import React from 'react';
-import { Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sparkles, Search, Eye } from 'lucide-react';
 import { Language } from '../types';
 import { UI_STRINGS } from '../i18n/translations';
 
 interface LoadingBarProps {
-  progress: number;
+  progress?: number; 
   message: string;
   lang: Language;
+  estimatedDuration?: number; 
   className?: string;
 }
 
-export const LoadingBar: React.FC<LoadingBarProps> = ({ progress, message, lang, className = "" }) => {
+export const LoadingBar: React.FC<LoadingBarProps> = ({ 
+  progress: manualProgress, 
+  message, 
+  lang, 
+  estimatedDuration = 8000, 
+  className = "" 
+}) => {
   const t = UI_STRINGS[lang];
   const isRTL = lang === 'he' || lang === 'ar';
+  const [internalProgress, setInternalProgress] = useState(0);
+
+  useEffect(() => {
+    if (manualProgress !== undefined) return;
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const k = 2.3 / estimatedDuration; 
+      const newProgress = Math.round(100 * (1 - Math.exp(-k * elapsed)));
+      setInternalProgress(Math.min(98, newProgress));
+    }, 100);
+    return () => clearInterval(interval);
+  }, [manualProgress, estimatedDuration]);
+
+  const displayProgress = manualProgress !== undefined ? manualProgress : internalProgress;
 
   return (
-    <div className={`w-full max-w-md bg-white p-10 sm:p-12 rounded-[3.5rem] shadow-2xl space-y-8 text-center mx-auto border border-slate-100 animate-fade-in-lesson ${className}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`w-full max-w-sm bg-white p-6 md:p-10 rounded-2xl md:rounded-[3.5rem] shadow-xl space-y-4 md:space-y-8 text-center mx-auto border border-slate-50 ${className}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <style>{`
-        @keyframes fade-in-lesson {
-          from { opacity: 0; transform: translateY(20px) scale(0.98); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .animate-fade-in-lesson {
-          animation: fade-in-lesson 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-        }
-        .progress-bar-shadow {
-          box-shadow: inset 0 2px 8px rgba(0,0,0,0.06);
-        }
+        @keyframes scan { 0%, 100% { transform: translateY(-10px) opacity: 0.2; } 50% { transform: translateY(10px) opacity: 1; } }
+        .scanner-line { animation: scan 2s ease-in-out infinite; }
       `}</style>
       
-      {/* Icon Area */}
-      <div className="relative flex justify-center pb-2">
-        <div className="bg-blue-50 w-24 h-24 rounded-full flex items-center justify-center text-blue-500 shadow-inner">
-          <Sparkles size={56} className="animate-spin-slow" />
+      <div className="relative flex justify-center">
+        <div className="bg-orange-50 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-orange-500 relative overflow-hidden shadow-inner">
+          <div className="absolute w-full h-0.5 md:h-1 bg-orange-400 scanner-line" />
+          <Eye size={32} className="md:w-10 md:h-10" />
         </div>
       </div>
 
-      {/* Text Info */}
+      <div className="space-y-2">
+        <h3 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">{message}</h3>
+        <p className="text-slate-400 font-bold text-sm md:text-base">{displayProgress > 80 ? t.almostThere : t.preparingAIWorld}</p>
+      </div>
+
       <div className="space-y-4">
-        <h3 className="text-3xl font-black text-slate-800 tracking-tight leading-tight">
-          {message}
-        </h3>
-        <p className="text-slate-500 font-bold text-lg leading-snug max-w-[280px] mx-auto opacity-80">
-          {t.preparingAIWorld}
-        </p>
-      </div>
-
-      {/* Progress Area */}
-      <div className="space-y-6 pt-4">
         <div className="flex justify-center items-center gap-2">
-          <span className="text-blue-600 font-black text-2xl uppercase tracking-widest">
-            {t.progressPercentage}:
-          </span>
-          <span className="text-4xl font-black text-blue-600 tabular-nums">
-            {Math.round(progress)}%
-          </span>
+          <span className="text-4xl font-black text-orange-600 tabular-nums">{Math.round(displayProgress)}%</span>
         </div>
-        
-        <div className="w-full h-12 bg-slate-100 rounded-full overflow-hidden border-4 border-white ring-1 ring-slate-200/50 progress-bar-shadow relative">
-          <div 
-            className="h-full bg-blue-500 rounded-full transition-all duration-300 ease-out" 
-            style={{ width: `${Math.max(2, progress)}%` }} 
-          />
+        <div className="w-full h-8 md:h-12 bg-slate-100 rounded-full overflow-hidden border-2 md:border-4 border-white ring-1 ring-slate-100 relative shadow-inner">
+          <div className="h-full bg-orange-500 rounded-full transition-all duration-500 ease-out shadow-lg" style={{ width: `${Math.max(5, displayProgress)}%` }} />
         </div>
-
-        {progress >= 99 && (
-          <div className="animate-bounce-in pt-4">
-            <div className="inline-block bg-emerald-50 text-emerald-600 px-8 py-3 rounded-full font-black text-2xl border-2 border-emerald-100 shadow-sm">
-              {t.complete}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

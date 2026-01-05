@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef } from 'react';
 import { analyzeImageContent, editImage } from '../services/geminiService'; // Import editImage
 import { Button } from '../components/Button';
@@ -62,8 +61,6 @@ export const AnalyzeView: React.FC<{lang: Language}> = ({lang}) => {
     } catch (error) {
       setAnalysis(t.imageAnalysisError);
       setAnalyzeIsLoadingState(false);
-    } finally {
-      // setAnalyzeIsLoadingState(false); // Handled by callbacks
     }
   };
 
@@ -90,8 +87,6 @@ export const AnalyzeView: React.FC<{lang: Language}> = ({lang}) => {
       setEditedImage(null);
       alert(t.failedToEditImageAlert);
       setAnalyzeIsLoadingState(false);
-    } finally {
-      // setAnalyzeIsLoadingState(false); // Handled by callbacks
     }
   };
 
@@ -179,9 +174,11 @@ export const AnalyzeView: React.FC<{lang: Language}> = ({lang}) => {
                       <Search size={36} className="text-orange-500" />
                       {t.whatIFound}:
                     </h3>
-                    <Markdown content={analysis} />
-                    <div className="mt-12 pt-8 border-t-2 border-slate-50 flex gap-4">
-                      <Button variant="secondary" onClick={() => setAnalysis('')} fullWidth className="!py-5 !text-xl !rounded-2xl">
+                    <div className="text-slate-800">
+                      <Markdown content={analysis} />
+                    </div>
+                    <div className="mt-12 pt-8 border-t-2 border-slate-100 flex gap-4">
+                      <Button variant="secondary" onClick={() => setAnalysis('')} fullWidth className="!py-5 !text-xl !rounded-2xl !text-slate-700">
                         {t.clearAnalysis}
                       </Button>
                     </div>
@@ -232,12 +229,12 @@ export const AnalyzeView: React.FC<{lang: Language}> = ({lang}) => {
                         download={`doriai-edited-image-${Date.now()}.png`}
                         className="flex-1"
                       >
-                        <Button variant="secondary" fullWidth className="!py-5 !text-xl !rounded-2xl">
+                        <Button variant="secondary" fullWidth className="!py-5 !text-xl !rounded-2xl !text-slate-700">
                           <Download size={24} />
                           {t.saveEditedPicture}
                         </Button>
                       </a>
-                      <Button variant="secondary" onClick={() => { setEditedImage(null); setEditPrompt(''); }} className="!py-5 !text-xl !rounded-2xl">
+                      <Button variant="secondary" onClick={() => { setEditedImage(null); setEditPrompt(''); }} className="!py-5 !text-xl !rounded-2xl !text-slate-700">
                         <RefreshCcw size={24} />
                         {t.editAgain}
                       </Button>
@@ -247,7 +244,7 @@ export const AnalyzeView: React.FC<{lang: Language}> = ({lang}) => {
                 {/* Clear all button */}
                 {(analysis || editedImage) && (
                   <div className="mt-8 pt-8 border-t-2 border-slate-50 flex justify-center">
-                    <Button variant="secondary" onClick={clearImage} className="!py-5 !text-xl !rounded-2xl">
+                    <Button variant="secondary" onClick={clearImage} className="!py-5 !text-xl !rounded-2xl !text-slate-700">
                       {t.startOverNewPhoto}
                     </Button>
                   </div>

@@ -9,7 +9,8 @@ export enum ViewState {
   LESSON_DETAIL = 'LESSON_DETAIL',
   CHAT = 'CHAT',
   IMAGE_ANALYZE = 'IMAGE_ANALYZE',
-  VOICE_BUDDY = 'VOICE_BUDDY'
+  VOICE_BUDDY = 'VOICE_BUDDY',
+  BUREAUCRACY_TRANSLATOR = 'BUREAUCRACY_TRANSLATOR'
 }
 
 export type Language = 'en' | 'he' | 'es' | 'ru' | 'ar';
@@ -19,16 +20,15 @@ export interface Message {
   role: 'user' | 'model';
   text: string;
   isThinking?: boolean;
-  // Optional: to store grounding URLs if any
   groundingUrls?: { uri: string; title?: string }[];
 }
 
-export type LessonCategory = 'AI_BASICS' | 'INTERNET_SKILLS' | 'SAFETY';
+export type LessonCategory = 'AI_BASICS' | 'INTERNET_SKILLS' | 'SAFETY' | 'LIFE_ADMIN';
 
 export interface LessonStep {
   title: string;
   content: string;
-  interactiveType?: 'SIMULATED_EMAIL' | 'SIMULATED_SEARCH' | 'SIMULATED_VIDEO_CALL' | 'SECURE_CHECKOUT' | 'SIMULATED_QR' | 'SIMULATED_VOICE' | 'SIMULATED_MAP' | 'QUIZ' | 'INFO' | 'SIMULATED_LENS' | 'SIMULATED_SOCIAL' | 'SIMULATED_BUS_PAYMENT' | 'LIVE_AI_CHAT' | 'SIMULATED_IMAGE_GENERATION' | 'SIMULATED_IMAGE_EDITING' | 'SIMULATED_PHOTO_JOURNEY' | 'SIMULATED_PHARMACY';
+  interactiveType?: 'SIMULATED_EMAIL' | 'SIMULATED_SEARCH' | 'SIMULATED_VIDEO_CALL' | 'SECURE_CHECKOUT' | 'SIMULATED_QR' | 'SIMULATED_VOICE' | 'SIMULATED_MAP' | 'QUIZ' | 'INFO' | 'SIMULATED_LENS' | 'SIMULATED_SOCIAL' | 'SIMULATED_BUS_PAYMENT' | 'LIVE_AI_CHAT' | 'SIMULATED_IMAGE_GENERATION' | 'SIMULATED_IMAGE_EDITING' | 'SIMULATED_PHOTO_JOURNEY' | 'SIMULATED_PHARMACY' | 'LIVE_VIDEO_CHAT' | 'SIMULATED_APP_TOUR' | 'SIMULATED_BUREAUCRACY' | 'SIMULATED_BROWSER';
   interactiveData?: any;
 }
 

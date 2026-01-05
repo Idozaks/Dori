@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { UI_STRINGS } from '../i18n/translations';
 import { Language, UserAccount } from '../types';
@@ -9,6 +8,7 @@ const Avatar = ({ seed, className }: { seed: string, className?: string }) => {
   const isDoris = seed === 'doris';
   const isSolomon = seed === 'solomon';
   const isGoldie = seed === 'goldie';
+  const isVictor = seed === 'victor';
   
   return (
     <div className={`aspect-square overflow-hidden bg-white rounded-full flex items-center justify-center ${className}`}>
@@ -49,7 +49,20 @@ const Avatar = ({ seed, className }: { seed: string, className?: string }) => {
           <path d="M30 95c0-10 10-15 20-15s20 5 20 15H30z" fill="#be185d" />
         </svg>
       )}
-      {!isDoris && !isSolomon && !isGoldie && (
+      {isVictor && (
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+          <circle cx="50" cy="50" r="50" fill="#ffedd5" />
+          <path d="M50 78c-11 0-20-9-20-20V42c0-11 9-20 20-20s20 9 20 20v16c0 11-9 20-20 20z" fill="#ffdbac" />
+          <path d="M32 40c0-10 10-18 18-18s18 8 18 18v2c0-10-8-15-18-15s-18 5-18 15v-2z" fill="#e2e8f0" />
+          <g>
+            <circle cx="41" cy="48" r="2" fill="#333" />
+            <circle cx="59" cy="48" r="2" fill="#333" />
+          </g>
+          <path d="M44 65q6 4 12 0" stroke="#9a3412" strokeWidth="2" fill="none" strokeLinecap="round" />
+          <path d="M25 100c0-10 10-18 25-18s25 8 25 18H25z" fill="#065f46" />
+        </svg>
+      )}
+      {!isDoris && !isSolomon && !isGoldie && !isVictor && (
         <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-black text-6xl">
           {seed.charAt(0).toUpperCase()}
         </div>
@@ -80,70 +93,54 @@ export const LandingView: React.FC<LandingViewProps> = ({ onLogin, lang, account
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Hero Section */}
       <section className="relative pt-20 pb-12 px-6 text-center">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-blue-100/50 rounded-full blur-3xl -z-10 animate-pulse"></div>
-        
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="inline-flex items-center gap-2 bg-white px-6 py-2 rounded-full shadow-sm border border-blue-100">
             <Sparkles size={20} className="text-blue-500" />
             <span className="text-blue-600 font-black tracking-widest uppercase text-sm">{t.welcome}</span>
           </div>
-          
-          <h1 className="text-5xl md:text-6xl font-black text-slate-900 leading-tight">
-            {t.landingHeroTitle}
-          </h1>
-          
-          <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
-            {t.landingHeroSubtitle}
-          </p>
+          <h1 className="text-5xl md:text-6xl font-black text-slate-900 leading-tight">{t.landingHeroTitle}</h1>
+          <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">{t.landingHeroSubtitle}</p>
         </div>
       </section>
 
-      {/* Profile Selector Section */}
       <section className="max-w-6xl mx-auto px-6 py-12">
         <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl border-4 border-blue-100/50 relative">
           <h2 className="text-4xl font-black text-slate-900 mb-4 text-center">{t.whoIsLearning}</h2>
           <p className="text-xl text-slate-500 font-bold mb-12 text-center">{t.selectProfile}</p>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {accounts.map(account => {
               const accountId = account.id.toLowerCase();
-              const tag = accountId.includes('doris') ? t.dorisTag : accountId.includes('solomon') ? t.solomonTag : t.goldieTag;
-              const desc = accountId.includes('doris') ? t.dorisDesc : accountId.includes('solomon') ? t.solomonDesc : t.goldieDesc;
+              let tag = '';
+              let desc = '';
+              if (accountId.includes('doris')) { tag = t.dorisTag; desc = t.dorisDesc; }
+              else if (accountId.includes('solomon')) { tag = t.solomonTag; desc = t.solomonDesc; }
+              else if (accountId.includes('goldie')) { tag = t.goldieTag; desc = t.goldieDesc; }
+              else if (accountId.includes('victor')) { tag = t.victorTag; desc = t.victorDesc; }
 
               return (
                 <button
                   key={account.id}
                   onClick={() => handleProfileSelect(account)}
-                  className="group relative flex flex-col items-center p-8 rounded-[3rem] bg-slate-50 border-4 border-transparent hover:border-blue-500 hover:bg-white transition-all transform hover:-translate-y-2 active:scale-95 shadow-xl text-center"
+                  className="group relative flex flex-col items-center p-6 rounded-[2.5rem] bg-slate-50 border-4 border-transparent hover:border-blue-500 hover:bg-white transition-all transform hover:-translate-y-2 active:scale-95 shadow-xl text-center"
                 >
-                  <Avatar seed={account.avatar} className="w-32 h-32 rounded-[2.5rem] mb-6 border-4 border-white shadow-xl group-hover:rotate-3 transition-transform" />
-                  
-                  <div className="mb-4">
-                    <span className="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest inline-flex items-center gap-2 mb-3">
-                      <GraduationCap size={14} /> {tag}
+                  <Avatar seed={account.avatar} className="w-28 h-28 rounded-[2rem] mb-4 border-4 border-white shadow-xl group-hover:rotate-3 transition-transform" />
+                  <div className="mb-2">
+                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2 mb-2">
+                      <GraduationCap size={12} /> {tag}
                     </span>
-                    <h3 className="text-3xl font-black text-slate-800">{account.name}</h3>
+                    <h3 className="text-2xl font-black text-slate-800">{account.name}</h3>
                   </div>
-
-                  <p className="text-lg text-slate-500 font-medium leading-relaxed mb-6 h-14 overflow-hidden">
-                    {desc}
-                  </p>
-
-                  <div className="w-full pt-6 border-t border-slate-200 flex items-center justify-between mt-auto">
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed mb-4 h-12 overflow-hidden">{desc}</p>
+                  <div className="w-full pt-4 border-t border-slate-200 flex items-center justify-between mt-auto">
                     <div className="flex flex-col items-start">
-                      <span className="text-2xl font-black text-blue-600">{account.completedLessonIds.length}</span>
-                      <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.lessons}</span>
+                      <span className="text-xl font-black text-blue-600">{account.completedLessonIds.length}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.lessons}</span>
                     </div>
-                    <div className="bg-blue-600 p-3 rounded-2xl text-white group-hover:scale-110 transition-transform">
-                      <ChevronRight size={24} className={isRTL ? 'rotate-180' : ''} />
+                    <div className="bg-blue-600 p-2 rounded-xl text-white group-hover:scale-110 transition-transform">
+                      <ChevronRight size={20} className={isRTL ? 'rotate-180' : ''} />
                     </div>
-                  </div>
-                  
-                  {/* Progress bubble overlay */}
-                  <div className="absolute top-4 right-4 bg-white px-4 py-1.5 rounded-full text-sm font-black text-blue-500 shadow-sm border border-blue-50">
-                    {Math.round((account.completedLessonIds.length / 10) * 100)}%
                   </div>
                 </button>
               );
@@ -152,36 +149,32 @@ export const LandingView: React.FC<LandingViewProps> = ({ onLogin, lang, account
         </div>
       </section>
 
-      {/* Features Grid */}
       <section className="max-w-6xl mx-auto px-6 py-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <div className="bg-white p-10 rounded-[3rem] shadow-xl border-2 border-slate-50 hover:border-blue-200 transition-all">
             <div className="bg-emerald-100 w-20 h-20 rounded-3xl flex items-center justify-center text-emerald-600 mb-8 shadow-inner">
               <ShieldCheck size={40} />
             </div>
-            <h3 className="text-3xl font-black text-slate-800 mb-4">{t.feature1Title}</h3>
-            <p className="text-xl text-slate-500 font-medium leading-relaxed">{t.feature1Desc}</p>
+            <h3 className="text-3xl font-black text-slate-800 mb-4">{t.feature1Title || 'Safe Learning'}</h3>
+            <p className="text-xl text-slate-500 font-medium leading-relaxed">{t.feature1Desc || 'Learn in a safe, simulated environment without any risk.'}</p>
           </div>
-
           <div className="bg-white p-10 rounded-[3rem] shadow-xl border-2 border-slate-50 hover:border-purple-200 transition-all">
             <div className="bg-purple-100 w-20 h-20 rounded-3xl flex items-center justify-center text-purple-600 mb-8 shadow-inner">
               <Sparkles size={40} />
             </div>
-            <h3 className="text-3xl font-black text-slate-800 mb-4">{t.feature2Title}</h3>
-            <p className="text-xl text-slate-500 font-medium leading-relaxed">{t.feature2Desc}</p>
+            <h3 className="text-3xl font-black text-slate-800 mb-4">{t.feature2Title || 'AI Companion'}</h3>
+            <p className="text-xl text-slate-500 font-medium leading-relaxed">{t.feature2Desc || 'Dori is always here to answer your questions simply.'}</p>
           </div>
-
           <div className="bg-white p-10 rounded-[3rem] shadow-xl border-2 border-slate-50 hover:border-orange-200 transition-all">
             <div className="bg-orange-100 w-20 h-20 rounded-3xl flex items-center justify-center text-orange-600 mb-8 shadow-inner">
               <Cpu size={40} />
             </div>
-            <h3 className="text-3xl font-black text-slate-800 mb-4">{t.feature3Title}</h3>
-            <p className="text-xl text-slate-500 font-medium leading-relaxed">{t.feature3Desc}</p>
+            <h3 className="text-3xl font-black text-slate-800 mb-4">{t.feature3Title || 'Real-world Skills'}</h3>
+            <p className="text-xl text-slate-500 font-medium leading-relaxed">{t.feature3Desc || 'Master bureaucracy, shopping, and communication tools.'}</p>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-sm">
         <p>&copy; {new Date().getFullYear()} Dori AI • {t.welcome}</p>
       </footer>

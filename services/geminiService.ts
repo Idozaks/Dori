@@ -1,15 +1,12 @@
 
-import { GoogleGenAI, GenerateContentResponse, Modality, Tool } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
 import { ImageSize, TTSVoiceName, Language } from "../types";
 import { UI_STRINGS } from '../i18n/translations';
 
-// Helper to create a new client instance with the current API key.
 const getClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-/**
- * Decodes a base64 string into a Uint8Array.
- */
-function decode(base64: string): Uint8Array {
+// Added export to resolve import errors in views
+export function decode(base64: string): Uint8Array {
   const binaryString = atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
@@ -19,10 +16,8 @@ function decode(base64: string): Uint8Array {
   return bytes;
 }
 
-/**
- * Decodes raw PCM audio data into an AudioBuffer.
- */
-async function decodeAudioData(
+// Added export to resolve import errors in views
+export async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
   sampleRate: number,
@@ -58,11 +53,6 @@ interface GeminiServiceCallbacks {
   lang?: Language;
 }
 
-/**
- * More realistic progress simulator.
- * Starts fast, slows down as it approaches 100.
- * Never hits 100 until 'stop' is called.
- */
 const simulateProgress = (
   estimatedDurationMs: number,
   callbacks: GeminiServiceCallbacks | undefined,
@@ -80,31 +70,18 @@ const simulateProgress = (
 
   const intervalId = setInterval(() => {
     const elapsed = Date.now() - startTime;
-    
-    // Asymptotic progress: progress = 100 * (1 - e^(-k * elapsed))
-    // We want it to reach roughly 90% at the estimatedDuration
-    // 0.9 = 1 - e^(-k * estimatedDuration)
-    // e^(-k * estimatedDuration) = 0.1
-    // -k * estimatedDuration = ln(0.1)
-    // k = -ln(0.1) / estimatedDuration
-    const k = 2.3025 / estimatedDurationMs;
+    // Reach 96% at estimatedDuration, then wait for stop() to hit 100
+    const k = 3.2 / estimatedDurationMs;
     let progress = Math.round(100 * (1 - Math.exp(-k * elapsed)));
-    
-    // Cap at 99 until finished
-    progress = Math.min(99, progress);
-    
+    progress = Math.min(98, progress);
     onProgress(progress, t[messageKey]);
-
-    // If it takes way too long, show a different message
-    if (elapsed > estimatedDurationMs * 2.5) {
-      onProgress(progress, t.longWait);
-    }
-  }, 150);
+  }, 120);
 
   return {
     intervalId,
     stop: () => {
       clearInterval(intervalId);
+      // Final jump to 100 and set message to complete
       onProgress(100, t.complete);
     }
   };
@@ -119,45 +96,37 @@ export const generateTextResponse = async (
   const ai = getClient();
   const startTime = performance.now();
   const estimatedDuration = useThinkingMode ? ESTIMATED_DURATIONS.THINKING_TEXT_RESPONSE : ESTIMATED_DURATIONS.TEXT_RESPONSE;
-  
   const progressMessageKey: keyof typeof UI_STRINGS.en = useThinkingMode 
     ? 'thinkingDeeply' 
     : (useSearchGrounding ? 'fetchingSources' : 'generatingTextResponse');
-
   const progressSimulator = simulateProgress(estimatedDuration, callbacks, progressMessageKey);
 
   try {
     const modelId = 'gemini-3-flash-preview';
-    
     const config: any = {};
     if (useThinkingMode) {
       config.thinkingConfig = { thinkingBudget: 24576 };
     }
-
-    const tools: Tool[] = [];
+    const tools: any[] = [];
     if (useSearchGrounding) {
       tools.push({ googleSearch: {} });
     }
     if (tools.length > 0) {
       config.tools = tools;
     }
-
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: modelId,
       contents: prompt,
       config: config
     });
-
     const text = response.text || UI_STRINGS[callbacks?.lang || 'en'].aiResponseError;
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-
     progressSimulator.stop();
     callbacks?.onComplete?.(performance.now() - startTime);
     return { text, groundingChunks };
   } catch (error: any) {
     progressSimulator.stop();
     callbacks?.onError?.(error);
-    console.error("Error generating text:", error);
     throw new Error(UI_STRINGS[callbacks?.lang || 'en'].failedToGetResponse);
   }
 };
@@ -176,39 +145,22 @@ export const analyzeImageContent = async (
   try {
     const modelId = 'gemini-3-flash-preview';
     const base64Data = base64Image.split(',')[1];
-
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: modelId,
       contents: {
-        parts: [
-          {
-            inlineData: {
-              mimeType: mimeType,
-              data: base64Data
-            }
-          },
-          {
-            text: prompt || UI_STRINGS[callbacks?.lang || 'en'].describeImageSimple
-          }
-        ]
+        parts: [{ inlineData: { mimeType: mimeType, data: base64Data } }, { text: prompt || UI_STRINGS[callbacks?.lang || 'en'].describeImageSimple }]
       }
     });
-
     progressSimulator.stop();
     callbacks?.onComplete?.(performance.now() - startTime);
     return response.text || UI_STRINGS[callbacks?.lang || 'en'].couldNotAnalyzeImage;
   } catch (error: any) {
     progressSimulator.stop();
     callbacks?.onError?.(error);
-    console.error("Error analyzing image:", error);
     throw new Error(UI_STRINGS[callbacks?.lang || 'en'].failedToAnalyzeImage);
   }
 };
 
-/**
- * Generates an image. Uses 'gemini-2.5-flash-image' for standard quality (fast)
- * and 'gemini-3-pro-image-preview' for higher resolutions.
- */
 export const generateImage = async (
   prompt: string,
   isHighQuality: boolean = false,
@@ -222,24 +174,15 @@ export const generateImage = async (
 
   try {
     const modelId = isHighQuality ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image';
-    const config: any = {
-      imageConfig: {
-        aspectRatio: "1:1"
-      },
-    };
-
+    const config: any = { imageConfig: { aspectRatio: "1:1" } };
     if (isHighQuality) {
       config.imageConfig.imageSize = imageSize;
     }
-
     const response = await ai.models.generateContent({
       model: modelId,
-      contents: {
-        parts: [{ text: prompt }],
-      },
+      contents: { parts: [{ text: prompt }] },
       config: config,
     });
-
     if (response.candidates && response.candidates[0].content.parts) {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
@@ -254,7 +197,6 @@ export const generateImage = async (
   } catch (error: any) {
     progressSimulator.stop();
     callbacks?.onError?.(error);
-    console.error("Error generating image:", error);
     if (error.message && error.message.includes("Requested entity was not found")) {
       throw new Error("API_KEY_REQUIRED");
     }
@@ -283,24 +225,12 @@ export const editImage = async (
   try {
     const modelId = 'gemini-2.5-flash-image';
     const base64Data = base64Image.split(',')[1];
-
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: modelId,
       contents: {
-        parts: [
-          {
-            inlineData: {
-              data: base64Data,
-              mimeType: mimeType,
-            },
-          },
-          {
-            text: prompt,
-          },
-        ],
+        parts: [{ inlineData: { data: base64Data, mimeType: mimeType } }, { text: prompt }]
       },
     });
-
     if (response.candidates && response.candidates[0].content.parts) {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
@@ -311,15 +241,15 @@ export const editImage = async (
         }
       }
     }
-    throw new Error(UI_STRINGS[callbacks?.lang || 'en'].noEditedImageGenerated);
+    throw new Error(UI_STRINGS[callbacks?.lang || 'en'].noEditedImageGenerated || 'No edited image generated');
   } catch (error: any) {
     progressSimulator.stop();
     callbacks?.onError?.(error);
-    console.error("Error editing image:", error);
     throw new Error(UI_STRINGS[callbacks?.lang || 'en'].failedToEditImage);
   }
 };
 
+// Added generateSpeech function to resolve import errors in views
 export const generateSpeech = async (
   text: string,
   voiceName: TTSVoiceName = 'Zephyr',
@@ -331,10 +261,8 @@ export const generateSpeech = async (
   const progressSimulator = simulateProgress(estimatedDuration, callbacks, 'generatingSpeech');
 
   try {
-    const modelId = 'gemini-2.5-flash-preview-tts';
-
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: modelId,
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-preview-tts",
       contents: [{ parts: [{ text: text }] }],
       config: {
         responseModalities: [Modality.AUDIO],
@@ -350,15 +278,13 @@ export const generateSpeech = async (
     if (!base64Audio) {
       throw new Error(UI_STRINGS[callbacks?.lang || 'en'].noAudioDataReceived);
     }
+
     progressSimulator.stop();
     callbacks?.onComplete?.(performance.now() - startTime);
     return base64Audio;
   } catch (error: any) {
     progressSimulator.stop();
     callbacks?.onError?.(error);
-    console.error("Error generating speech:", error);
     throw new Error(UI_STRINGS[callbacks?.lang || 'en'].failedToGenerateSpeech);
   }
 };
-
-export { decodeAudioData, decode };

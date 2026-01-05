@@ -47,10 +47,10 @@ export const Markdown: React.FC<{ content: string; className?: string }> = ({ co
 
         // Headers
         if (trimmed.startsWith('### ')) {
-          return <h3 key={i} className="text-2xl font-black pt-4 pb-1 border-b-2 border-slate-50/10">{renderInline(trimmed.slice(4))}</h3>;
+          return <h3 key={i} className="text-2xl font-black pt-4 pb-1 border-b-2 border-slate-100 text-slate-900">{renderInline(trimmed.slice(4))}</h3>;
         }
         if (trimmed.startsWith('## ')) {
-          return <h2 key={i} className="text-3xl font-black pt-6 pb-2 border-b-4 border-slate-100/10">{renderInline(trimmed.slice(3))}</h2>;
+          return <h2 key={i} className="text-3xl font-black pt-6 pb-2 border-b-4 border-slate-100 text-slate-900">{renderInline(trimmed.slice(3))}</h2>;
         }
 
         // Bullet points
@@ -58,14 +58,14 @@ export const Markdown: React.FC<{ content: string; className?: string }> = ({ co
           return (
             <div key={i} className="flex items-start gap-4 pl-4 group">
               <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-2.5 flex-shrink-0 group-hover:scale-125 transition-transform" />
-              <div className="flex-1 text-xl leading-relaxed">{renderInline(trimmed.slice(2))}</div>
+              <div className="flex-1 text-xl leading-relaxed text-slate-800 font-medium">{renderInline(trimmed.slice(2))}</div>
             </div>
           );
-        } // Fixed: Removed the extra ');' that caused the scope error.
+        }
 
         // Standard Paragraph
         return (
-          <p key={i} className="text-xl leading-relaxed font-medium">
+          <p key={i} className="text-xl leading-relaxed font-medium text-slate-800">
             {renderInline(line)}
           </p>
         );
