@@ -14,7 +14,7 @@ import {
   MoreVertical, ExternalLink, CreditCard, Bus, Users, Clock, CheckCircle2, XCircle, Paperclip, Image as ImageIcon, Trash2, Smile, Bot, Wand2, Download, RefreshCw, Volume2, StopCircle, Upload, Wallet,
   Share2, Train, 
   Map as MapIcon, 
-  Ticket, Package, Book, MessageCircleMore, Check, MapPin, Pill, Truck, Home, Utensils, Headphones, Gift, Calendar, UserCheck, Phone, ShieldAlert, BookOpen, GraduationCap, Type, Cloud, CheckCircle
+  Ticket, Package, Book, MessageCircleMore, Check, MapPin, Pill, Truck, Home, Utensils, Headphones, Gift, Calendar, UserCheck, Phone, ShieldAlert, BookOpen, GraduationCap, Type, Cloud, CheckCircle, MousePointer2, Layout, CreditCard as CardIcon, AlertTriangle, AlertCircle
 } from 'lucide-react';
 import { LoadingBar } from '../components/LoadingBar';
 
@@ -26,82 +26,6 @@ interface LessonDetailViewProps {
   cachedBackgroundImages: CachedImageMap;
   onPreFetchNext: (prompt: string) => void;
 }
-
-type SelectedQrActionType = { title: string; content: string } | null;
-
-const LOCAL_SCENES: Record<string, { x: number, y: number, type: 'RESTAURANT' | 'MUSEUM' | 'PACKAGE' | 'BUS' | 'SYNC' }> = {
-  "A clean minimalist vector illustration of a restaurant table. In the center, a clear square QR code on a simple stand. Flat design style, vibrant soft colors, white background.": { x: 50, y: 45, type: 'RESTAURANT' },
-  "A minimalist graphic illustration of a modern museum ticket scanner. A sleek digital screen showing a QR code. Vector art style, clean lines, pastel colors.": { x: 50, y: 40, type: 'MUSEUM' },
-  "A friendly vector illustration of a brown cardboard delivery box with a large clear QR code sticker. Flat design, clean minimalist style, white background.": { x: 50, y: 55, type: 'PACKAGE' },
-  "A clean graphic illustration of a city bus interior showing a bright yellow payment pole with a QR code scanner. Vector style, flat design, high contrast.": { x: 50, y: 50, type: 'BUS' },
-  "A friendly illustration of a smiling computer and a floating soft blue cloud connected by glowing arrows. High contrast, warm colors, clean vector style.": { x: 50, y: 50, type: 'SYNC' }
-};
-
-const LocalGraphicIllustration: React.FC<{ type: 'RESTAURANT' | 'MUSEUM' | 'PACKAGE' | 'BUS' | 'SYNC' }> = ({ type }) => {
-  switch (type) {
-    case 'SYNC':
-      return (
-        <svg viewBox="0 0 100 125" className="w-full h-full bg-blue-50">
-          <rect x="0" y="0" width="100" height="125" fill="#eff6ff" />
-          <path d="M20 90 L80 90 L75 60 L25 60 Z" fill="#3b82f6" />
-          <rect x="30" y="65" width="40" height="20" fill="#ffffff" rx="2" />
-          <path d="M35 15 a15 15 0 0 1 30 0 a15 15 0 0 1 15 15 a15 15 0 0 1-15 15 h-30 a15 15 0 0 1 0-30" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
-          <path d="M50 45 L50 60 M45 55 L50 60 L55 55" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-      );
-    case 'RESTAURANT':
-      return (
-        <svg viewBox="0 0 100 125" className="w-full h-full bg-slate-50">
-          <rect x="0" y="0" width="100" height="125" fill="#f8fafc" />
-          <path d="M10 110 L90 110 L85 40 L15 40 Z" fill="#e2e8f0" opacity="0.5" />
-          <rect x="30" y="20" width="40" height="60" fill="#ffffff" rx="4" stroke="#cbd5e1" strokeWidth="2" />
-          <rect x="35" y="30" width="30" height="40" fill="#f1f5f9" rx="2" />
-          <path d="M40 35 h20 M40 42 h15 M40 49 h20" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
-          <rect x="42" y="55" width="16" height="16" fill="#1e293b" rx="1" />
-          <rect x="45" y="58" width="10" height="10" fill="white" rx="0.5" />
-          <rect x="47" y="60" width="6" height="6" fill="#1e293b" />
-        </svg>
-      );
-    case 'MUSEUM':
-      return (
-        <svg viewBox="0 0 100 125" className="w-full h-full bg-slate-50">
-          <rect x="0" y="0" width="100" height="125" fill="#f1f5f9" />
-          <rect x="35" y="80" width="30" height="45" fill="#334155" />
-          <path d="M30 80 L70 80 L75 25 L25 25 Z" fill="#475569" />
-          <rect x="32" y="32" width="36" height="40" fill="#0f172a" rx="4" />
-          <rect x="36" y="36" width="28" height="32" fill="#3b82f6" opacity="0.2" rx="2" />
-          <rect x="41" y="43" width="18" height="18" fill="white" rx="1" />
-          <rect x="44" y="46" width="12" height="12" fill="#0f172a" />
-          <circle cx="50" cy="74" r="2" fill="#ef4444" />
-        </svg>
-      );
-    case 'PACKAGE':
-      return (
-        <svg viewBox="0 0 100 125" className="w-full h-full bg-slate-50">
-          <rect x="0" y="0" width="100" height="125" fill="#f8fafc" />
-          <path d="M20 90 L80 90 L85 45 L15 45 Z" fill="#d69e5e" />
-          <path d="M15 45 L50 35 L85 45 L50 55 Z" fill="#eab308" opacity="0.3" />
-          <rect x="35" y="55" width="30" height="20" fill="#ffffff" rx="2" opacity="0.9" />
-          <rect x="42" y="58" width="16" height="14" fill="#1e293b" rx="1" />
-          <rect x="45" y="61" width="10" height="8" fill="white" />
-        </svg>
-      );
-    case 'BUS':
-      return (
-        <svg viewBox="0 0 100 125" className="w-full h-full bg-slate-50">
-          <rect x="0" y="0" width="100" height="125" fill="#f1f5f9" />
-          <rect x="42" y="0" width="16" height="125" fill="#fbbf24" />
-          <rect x="30" y="35" width="40" height="40" fill="#1e293b" rx="6" />
-          <rect x="34" y="39" width="32" height="32" fill="#ffffff" rx="4" />
-          <rect x="40" y="45" width="20" height="20" fill="#1e293b" rx="1" />
-          <rect x="43" y="48" width="14" height="14" fill="white" />
-          <rect x="30" y="80" width="40" height="10" fill="#94a3b8" rx="2" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-};
 
 const BirdAssistant: React.FC<{ state?: 'happy' | 'thinking' | 'talking' }> = ({ state = 'happy' }) => (
   <div className="relative w-12 h-12 sm:w-20 sm:h-20 bird-container">
@@ -128,55 +52,49 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
   const t = UI_STRINGS[lang];
   const isRTL = lang === 'he' || lang === 'ar';
   const [stepIndex, setStepIndex] = useState(0);
-  const [qrSuccess, setQrSuccess] = useState(false);
-  const [syncSuccess, setSyncSuccess] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [qrTargetPos, setQrTargetPos] = useState({ x: 50, y: 45 });
   const [pos, setPos] = useState({ x: 50, y: 75 }); 
   const [isDragging, setIsDragging] = useState(false);
-  const [bgImage, setBgImage] = useState<string | null>(null);
-  const [localIllustration, setLocalIllustration] = useState<'RESTAURANT' | 'MUSEUM' | 'PACKAGE' | 'BUS' | 'SYNC' | null>(null);
-  const [selectedQrAction, setSelectedQrAction] = useState<SelectedQrActionType>(null); 
-  const [lessonIsLoading, setLessonIsLoading] = useState(false);
-  const [lessonLoadingProgress, setLessonLoadingProgress] = useState(0);
-  const [lessonLoadingMessage, setLessonLoadingMessage] = useState('');
+  const [interactiveState, setInteractiveState] = useState<any>({});
   
   const containerRef = useRef<HTMLDivElement>(null);
+  const bureaucracyFileInputRef = useRef<HTMLInputElement>(null);
   const step = lesson.steps[stepIndex];
   const isLastStep = stepIndex === lesson.steps.length - 1;
-
-  useEffect(() => {
-    const backgroundPrompt = step.interactiveData?.backgroundPrompt;
-    if (backgroundPrompt && LOCAL_SCENES[backgroundPrompt]) {
-      const config = LOCAL_SCENES[backgroundPrompt];
-      setLocalIllustration(config.type);
-      setQrTargetPos({ x: config.x, y: config.y });
-      setBgImage(null);
-      return;
-    }
-    setLocalIllustration(null);
-    if (backgroundPrompt) {
-      setBgImage(cachedBackgroundImages[backgroundPrompt] || null);
-    }
-  }, [step, cachedBackgroundImages]);
 
   const handleNext = () => { 
     if (isLastStep) onFinish(lesson.id); 
     else { 
       setStepIndex(prev => prev + 1); 
-      setQrSuccess(false); 
-      setSyncSuccess(false);
-      setQrTargetPos({ x: 50, y: 50 }); 
-      setSelectedQrAction(null); 
+      setInteractiveState({});
     } 
   };
 
-  const handleSync = () => {
-    setSyncing(true);
-    setTimeout(() => {
-      setSyncing(false);
-      setSyncSuccess(true);
-    }, 2000);
+  const handleBureaucracyFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setInteractiveState({ ...interactiveState, loading: true, loadingMessage: t.analyzingDoc });
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result as string;
+      const mimeType = file.type;
+
+      try {
+        const prompt = `Analyze this official document/letter. Explain what it is, its urgency (High/Medium/Low), and provide a simple 3-step checklist of what to do next. Use very simple language suitable for an elderly person. Avoid jargon. Use the ${lang === 'he' ? 'Hebrew' : 'English'} language for the response. Output as Markdown.`;
+        
+        const result = await analyzeImageContent(base64, mimeType, prompt, {
+          lang,
+          onProgress: (p, m) => setInteractiveState(prev => ({ ...prev, loadingProgress: p, loadingMessage: m })),
+        });
+
+        setInteractiveState({ analyzed: true, result, photo: base64 });
+      } catch (err) {
+        console.error("Analysis failed:", err);
+        setInteractiveState({ analyzed: false, error: t.failedToGetResponse });
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
@@ -188,94 +106,317 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
     const x = Math.max(5, Math.min(95, ((clientX - rect.left) / rect.width) * 100));
     const y = Math.max(5, Math.min(95, ((clientY - rect.top) / rect.height) * 100));
     setPos({ x, y });
-    const rad = 15;
-    if (step.interactiveType === 'SIMULATED_QR') {
-      if (Math.sqrt(Math.pow(x - qrTargetPos.x, 2) + Math.pow(y - qrTargetPos.y, 2)) < rad && !qrSuccess) {
-        setQrSuccess(true);
-      }
+
+    if (step.interactiveType === 'SIMULATED_LENS') {
+      const targets = step.interactiveData?.targets || [];
+      targets.forEach((target: any) => {
+        const dist = Math.sqrt(Math.pow(x - target.x, 2) + Math.pow(y - target.y, 2));
+        if (dist < 15) {
+          setInteractiveState((prev: any) => ({ ...prev, foundTarget: target.label }));
+        }
+      });
+    }
+    
+    if (step.interactiveType === 'SIMULATED_QR' || step.interactiveType === 'SIMULATED_BUS_PAYMENT') {
+        if (Math.abs(x - 50) < 15 && Math.abs(y - 50) < 15) {
+            setInteractiveState((prev: any) => ({ ...prev, success: true }));
+        }
     }
   };
 
   const renderInteractive = () => {
-    if (lessonIsLoading) return <LoadingBar progress={lessonLoadingProgress} message={lessonLoadingMessage} lang={lang} />;
-    
     switch (step.interactiveType) {
-      case 'SIMULATED_SYNC':
+      case 'SIMULATED_BROWSER':
         return (
-          <div className="w-full rounded-3xl p-8 bg-blue-50 border-4 border-blue-100 shadow-inner flex flex-col items-center gap-8 min-h-[400px] justify-center text-center">
-            {syncSuccess ? (
-              <div className="animate-bounce-in flex flex-col items-center gap-6">
-                <div className="bg-green-100 p-8 rounded-full text-green-600 shadow-xl border-4 border-white">
-                  <CheckCircle size={80} />
-                </div>
-                <h3 className="text-3xl font-black text-slate-800">{t.syncSuccess}</h3>
+          <div className="w-full bg-slate-200 rounded-2xl overflow-hidden border-2 border-slate-300 shadow-xl">
+            <div className="bg-slate-100 p-3 flex items-center gap-2 border-b-2 border-slate-300">
+              <div className="flex gap-1.5 mr-2">
+                <div className="w-3 h-3 rounded-full bg-red-400" />
+                <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                <div className="w-3 h-3 rounded-full bg-green-400" />
               </div>
-            ) : syncing ? (
-              <div className="flex flex-col items-center gap-8 w-full">
-                <div className="relative">
-                  <Cloud size={100} className="text-blue-500 animate-pulse" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <RefreshCw size={40} className="text-white animate-spin" />
-                  </div>
+              <Button variant="secondary" className="!p-1.5 !text-xs !rounded-lg"><ChevronLeft size={14} /></Button>
+              <Button variant="secondary" className="!p-1.5 !text-xs !rounded-lg"><ChevronRight size={14} /></Button>
+              <div className="flex-1 bg-white border-2 border-slate-200 rounded-xl px-3 py-1 text-sm text-slate-400 truncate flex items-center gap-2 shadow-inner">
+                 <Lock size={12} /> {interactiveState.url || 'google.com'}
+              </div>
+              <Button variant="secondary" className="!p-1.5 !text-xs !rounded-lg"><RefreshCw size={14} /></Button>
+            </div>
+            <div className="bg-white p-8 min-h-[300px] flex flex-col items-center justify-center text-center space-y-6">
+              <div className="text-4xl font-black text-slate-800 flex items-center gap-2">
+                 <span className="text-blue-600">G</span>
+                 <span className="text-red-500">o</span>
+                 <span className="text-yellow-500">o</span>
+                 <span className="text-blue-600">g</span>
+                 <span className="text-green-500">l</span>
+                 <span className="text-red-500">e</span>
+              </div>
+              <div className="w-full max-w-md bg-white border-2 border-slate-100 rounded-full px-6 py-4 shadow-xl flex items-center gap-3">
+                 <Search className="text-slate-300" />
+                 <input 
+                    type="text" 
+                    placeholder={t.browserUrlPlaceholder} 
+                    className="flex-1 outline-none text-lg font-bold"
+                    onFocus={() => setInteractiveState({ ...interactiveState, url: 'Searching...' })}
+                 />
+              </div>
+              <div className="flex gap-4">
+                 <div className="bg-slate-50 px-4 py-2 rounded-xl text-slate-400 font-bold text-sm border border-slate-100">Dori AI</div>
+                 <div className="bg-slate-50 px-4 py-2 rounded-xl text-slate-400 font-bold text-sm border border-slate-100">Weather</div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'SIMULATED_PHARMACY':
+        return (
+          <div className="w-full bg-emerald-50 rounded-[2rem] p-8 border-4 border-emerald-100 shadow-xl space-y-6">
+            <div className="flex items-center gap-4 border-b border-emerald-200 pb-4">
+              <div className="bg-white p-3 rounded-2xl text-emerald-600 shadow-sm"><Pill size={32} /></div>
+              <h3 className="text-2xl font-black text-emerald-900">{t.pharmacyTitle}</h3>
+            </div>
+            {!interactiveState.ordered ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-black text-emerald-700 uppercase tracking-widest">{t.enterRx}</label>
+                  <input 
+                    type="text" 
+                    placeholder={t.rxPlaceholder} 
+                    className="w-full p-4 text-xl rounded-2xl border-2 border-emerald-100 outline-none focus:border-emerald-500 font-bold"
+                  />
                 </div>
-                <div className="w-full h-4 bg-white rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-blue-600 animate-[sync-progress_2s_ease-in-out_infinite]" style={{ width: '40%' }} />
+                <div className="grid grid-cols-2 gap-4">
+                  <button className="p-4 bg-white rounded-2xl border-2 border-emerald-100 font-bold text-emerald-800 hover:bg-emerald-100 transition-all flex flex-col items-center gap-2">
+                    <Truck size={24} /> {t.homeDelivery}
+                  </button>
+                  <button className="p-4 bg-white rounded-2xl border-2 border-emerald-100 font-bold text-emerald-800 hover:bg-emerald-100 transition-all flex flex-col items-center gap-2">
+                    <Home size={24} /> {t.pickup}
+                  </button>
                 </div>
-                <p className="text-xl font-black text-blue-600 uppercase tracking-widest">{t.syncingNow}</p>
-                <style>{`
-                  @keyframes sync-progress {
-                    0% { transform: translateX(-100%); }
-                    100% { transform: translateX(300%); }
-                  }
-                `}</style>
+                <Button onClick={() => setInteractiveState({ ordered: true })} fullWidth className="!bg-emerald-600 !py-6 !text-2xl !rounded-3xl shadow-xl">
+                  {t.orderRefill}
+                </Button>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-8">
-                <div className="relative">
-                   <Cloud size={120} className="text-blue-100" strokeWidth={1} />
-                   <div className="absolute inset-0 flex items-center justify-center">
-                      <Cloud size={60} className="text-blue-600" />
+              <div className="text-center py-10 space-y-4 animate-fade-in">
+                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                  <CheckCircle2 size={40} />
+                </div>
+                <h4 className="text-2xl font-black text-emerald-900">{t.refillSuccess}</h4>
+                <p className="text-emerald-700 font-bold">{t.refillConfirmation}</p>
+              </div>
+            )}
+          </div>
+        );
+      case 'SIMULATED_MAP':
+        return (
+          <div className="w-full bg-slate-100 rounded-[2.5rem] p-6 border-4 border-white shadow-2xl space-y-4 overflow-hidden relative min-h-[400px]">
+             <div className="absolute inset-0 bg-blue-50 opacity-50 z-0">
+               <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                 <defs>
+                   <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                     <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#3b82f6" strokeWidth="0.5" opacity="0.2" />
+                   </pattern>
+                 </defs>
+                 <rect width="100%" height="100%" fill="url(#grid)" />
+                 <circle cx="50%" cy="50%" r="10" fill="#3b82f6" opacity="0.4" />
+                 <circle cx="50%" cy="50%" r="4" fill="#3b82f6" />
+               </svg>
+             </div>
+             <div className="relative z-10 flex flex-col gap-4">
+               <div className="bg-white p-3 rounded-2xl shadow-xl border-2 border-blue-50 flex items-center gap-3">
+                 <MapPin className="text-red-500" size={24} />
+                 <input 
+                   type="text" 
+                   placeholder={t.findNearby} 
+                   className="flex-1 outline-none text-lg font-bold text-slate-700"
+                 />
+                 <Button className="!p-3 !rounded-xl"><Search size={20} /></Button>
+               </div>
+               <div className="mt-20 flex flex-col items-center gap-2">
+                 <div className="bg-white p-3 rounded-2xl shadow-lg border border-slate-100 animate-bounce">
+                    <MapPin className="text-red-500" size={32} />
+                 </div>
+                 <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl text-slate-800 font-black text-sm shadow-md">
+                    Central Park
+                 </div>
+               </div>
+             </div>
+          </div>
+        );
+      case 'SECURE_CHECKOUT':
+        return (
+          <div className="w-full bg-slate-50 rounded-[2rem] p-8 border-4 border-white shadow-xl space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-2xl font-black text-slate-800">{t.securePayment}</h3>
+              <div className="flex gap-2">
+                <div className="w-10 h-6 bg-slate-200 rounded" />
+                <div className="w-10 h-6 bg-slate-300 rounded" />
+              </div>
+            </div>
+            {!interactiveState.paid ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.cardNumber}</label>
+                  <div className="w-full p-4 bg-white rounded-2xl border-2 border-slate-100 flex items-center gap-3 shadow-inner">
+                    <CardIcon className="text-slate-300" />
+                    <input type="text" placeholder="•••• •••• •••• ••••" className="flex-1 outline-none text-xl font-mono" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.expiry}</label>
+                    <input type="text" placeholder="MM/YY" className="w-full p-4 bg-white rounded-2xl border-2 border-slate-100 outline-none font-mono text-xl shadow-inner" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.cvv}</label>
+                    <input type="text" placeholder="•••" className="w-full p-4 bg-white rounded-2xl border-2 border-slate-100 outline-none font-mono text-xl shadow-inner" />
+                  </div>
+                </div>
+                <div className="pt-4">
+                  <Button onClick={() => setInteractiveState({ paid: true })} fullWidth className="!py-6 !text-2xl !rounded-3xl shadow-xl !bg-blue-600">
+                    <Lock size={24} className="mr-2" /> {t.payNow}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10 space-y-4 animate-fade-in">
+                <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                  <CheckCircle2 size={56} />
+                </div>
+                <h4 className="text-3xl font-black text-slate-800">{t.complete}</h4>
+              </div>
+            )}
+          </div>
+        );
+      case 'SIMULATED_LENS':
+        return (
+          <div className="w-full rounded-[2.5rem] overflow-hidden aspect-square md:aspect-[4/3] relative bg-slate-200 border-4 border-white shadow-2xl" ref={containerRef} onMouseDown={() => setIsDragging(true)} onMouseUp={() => setIsDragging(false)} onMouseMove={handleMove} onTouchStart={() => setIsDragging(true)} onTouchEnd={() => setIsDragging(false)} onTouchMove={handleMove} style={{ touchAction: 'none' }}>
+            <div className="absolute inset-0 z-0">
+               <svg width="100%" height="100%" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+                 <rect width="400" height="300" fill="#f8fafc" />
+                 <circle cx="120" cy="180" r="40" fill="#cbd5e1" opacity="0.5" />
+                 <rect x="250" y="80" width="80" height="120" rx="10" fill="#e2e8f0" />
+                 <text x="30" y="55" fontSize="20" fontWeight="900" fill="#94a3b8">SCAM TEST</text>
+                 <circle cx="120" cy="180" r="15" fill="#ef4444" opacity="0.1" />
+               </svg>
+            </div>
+            <div className={`absolute w-32 h-32 md:w-48 md:h-48 rounded-full border-8 border-orange-500 bg-white/10 shadow-[0_0_50px_rgba(249,115,22,0.4)] pointer-events-none transition-all duration-100 z-10 flex items-center justify-center`} style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}>
+               <div className="w-full h-full rounded-full border-2 border-white/50 flex items-center justify-center">
+                  <Search size={40} className="text-orange-500" />
+               </div>
+            </div>
+            {interactiveState.foundTarget && (
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-sm px-6 py-3 rounded-full shadow-2xl border-2 border-orange-500 z-20 animate-bounce">
+                <span className="text-orange-600 font-black text-lg">{interactiveState.foundTarget}</span>
+              </div>
+            )}
+            <div className="absolute bottom-6 inset-x-0 text-center z-20">
+              <span className="bg-slate-900/80 text-white px-6 py-2 rounded-full font-black text-sm uppercase tracking-widest">{t.scanningScams}</span>
+            </div>
+          </div>
+        );
+      case 'SIMULATED_QR':
+      case 'SIMULATED_BUS_PAYMENT':
+        return (
+          <div className="w-full rounded-[2.5rem] overflow-hidden aspect-square relative bg-slate-900 border-4 border-white shadow-2xl flex items-center justify-center" ref={containerRef} onMouseDown={() => setIsDragging(true)} onMouseUp={() => setIsDragging(false)} onMouseMove={handleMove} onTouchStart={() => setIsDragging(true)} onTouchEnd={() => setIsDragging(false)} onTouchMove={handleMove} style={{ touchAction: 'none' }}>
+             {!interactiveState.success ? (
+               <>
+                <div className="absolute inset-0 opacity-40">
+                  <svg width="100%" height="100%" viewBox="0 0 100 100">
+                    <rect x="40" y="40" width="20" height="20" fill="white" />
+                    <rect x="42" y="42" width="16" height="16" fill="black" />
+                    <rect x="44" y="44" width="6" height="6" fill="white" />
+                  </svg>
+                </div>
+                <div className="w-64 h-64 border-2 border-white/50 rounded-3xl relative flex items-center justify-center">
+                   <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-blue-500" />
+                   <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-blue-500" />
+                   <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-blue-500" />
+                   <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-blue-500" />
+                   <Camera size={48} className="text-white opacity-20" />
+                </div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-4 border-blue-400 rounded-3xl pointer-events-none" style={{ left: `${pos.x}%`, top: `${pos.y}%` }} />
+               </>
+             ) : (
+               <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-6 animate-fade-in text-center">
+                 <div className="bg-green-100 p-6 rounded-full text-green-600 shadow-inner">
+                   <CheckCircle2 size={64} />
+                 </div>
+                 <div>
+                   <h3 className="text-3xl font-black text-slate-800">{step.interactiveType === 'SIMULATED_BUS_PAYMENT' ? t.ridePaid : t.qrCodeScanned}</h3>
+                   <p className="text-slate-500 font-bold mt-2">{step.interactiveType === 'SIMULATED_BUS_PAYMENT' ? t.enjoyJourney : t.complete}</p>
+                 </div>
+               </div>
+             )}
+          </div>
+        );
+      case 'SIMULATED_BUREAUCRACY':
+        return (
+          <div className="w-full space-y-6">
+            <input 
+              type="file" 
+              ref={bureaucracyFileInputRef} 
+              className="hidden" 
+              accept="image/*" 
+              onChange={handleBureaucracyFileSelect} 
+            />
+            
+            {interactiveState.loading ? (
+              <LoadingBar progress={interactiveState.loadingProgress} message={interactiveState.loadingMessage} lang={lang} />
+            ) : !interactiveState.analyzed ? (
+              <div className="bg-slate-50 border-4 border-dashed border-slate-200 rounded-[2.5rem] p-12 text-center space-y-6">
+                <div className="bg-orange-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto text-orange-600 shadow-inner">
+                  <FileText size={48} />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-slate-800">{t.scanLetter}</h3>
+                  <p className="text-lg text-slate-500 font-bold">{t.takeDocPhoto}</p>
+                </div>
+                <Button 
+                  onClick={() => bureaucracyFileInputRef.current?.click()}
+                  className="!py-6 !px-12 !rounded-3xl !bg-orange-600 shadow-xl"
+                >
+                  <Camera size={32} /> {t.scanLetter}
+                </Button>
+                {interactiveState.error && (
+                  <p className="text-red-500 font-bold">{interactiveState.error}</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6 animate-fade-in">
+                {interactiveState.photo && (
+                  <div className="aspect-[4/3] rounded-[1.5rem] overflow-hidden border-2 border-slate-100 shadow-inner">
+                    <img src={interactiveState.photo} alt="Doc preview" className="w-full h-full object-contain bg-slate-100" />
+                  </div>
+                )}
+                
+                <div className="bg-white p-8 rounded-[2rem] border-2 border-orange-100 shadow-lg space-y-6">
+                   <h4 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                      <Sparkles className="text-orange-500" size={28} /> {t.noJargon}
+                   </h4>
+                   <div className="text-xl text-slate-600 leading-relaxed font-bold">
+                      <Markdown content={interactiveState.result} />
                    </div>
                 </div>
-                <p className="text-xl font-bold text-slate-600 max-w-sm">{t.cloudStorageDesc}</p>
-                <Button onClick={handleSync} className="!py-6 !px-12 !text-2xl !rounded-full shadow-2xl !bg-blue-600">
-                  <Cloud className="mr-2" /> {t.syncToCloud}
+
+                <Button variant="secondary" onClick={() => setInteractiveState({})} className="w-full !rounded-2xl !py-4">
+                  <RefreshCw size={20} /> {t.startOverNewPhoto}
                 </Button>
               </div>
             )}
           </div>
         );
-      case 'SIMULATED_QR':
-        return (
-          <div className="w-full rounded-2xl md:rounded-[2.5rem] overflow-hidden aspect-square md:aspect-[4/5] relative bg-white border-2 border-slate-100 shadow-xl" ref={containerRef} onMouseDown={() => setIsDragging(true)} onMouseUp={() => setIsDragging(false)} onMouseMove={handleMove} onTouchStart={() => setIsDragging(true)} onTouchEnd={() => setIsDragging(false)} onTouchMove={handleMove} style={{ backgroundImage: bgImage ? `url(${bgImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', touchAction: 'none' }}>
-            {localIllustration && <div className="absolute inset-0 z-0"><LocalGraphicIllustration type={localIllustration === 'SYNC' ? 'SYNC' : localIllustration} /></div>}
-            <div className={`absolute w-24 h-24 md:w-36 md:h-36 rounded-2xl md:rounded-[2.5rem] border-4 md:border-8 pointer-events-none transition-all duration-300 z-10 ${qrSuccess ? 'border-green-500 opacity-0' : 'border-blue-500 bg-white/10 shadow-2xl'}`} style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}>
-               <div className="bg-white/90 p-3 md:p-5 rounded-xl md:rounded-3xl shadow-xl flex items-center justify-center h-full">
-                 <Camera size={32} className="md:w-14 md:h-14 text-blue-500" />
-               </div>
-            </div>
-            {qrSuccess && (
-              <div className="absolute inset-x-0 bottom-0 p-4 z-20 animate-fade-in">
-                <div className="bg-white/95 p-4 md:p-6 rounded-2xl md:rounded-[2.5rem] shadow-2xl flex flex-col gap-3 border border-blue-100">
-                  <p className="text-xs font-black text-blue-600 text-center uppercase">{t.qrCodeScanned}</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {step.interactiveData?.actions?.map((action: any) => (
-                      <Button key={action.id} onClick={() => setSelectedQrAction({ title: action.overlayTitle, content: action.overlayContent })} variant="secondary" className="!py-2 !px-2 !text-xs !rounded-xl">
-                        <span className="truncate">{action.label}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      default: return null;
+      default: return (
+        <div className="w-full bg-slate-50 rounded-[2rem] p-12 border-4 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
+          <Sparkles size={64} />
+          <p className="mt-4 font-black text-xl uppercase tracking-widest">{t.preparingAIWorld}</p>
+        </div>
+      );
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 md:space-y-6 pb-20 px-4 pt-4 md:pt-8">
+    <div className="max-w-3xl mx-auto space-y-4 md:space-y-6 pb-20 px-4 pt-4 md:pt-8" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex items-center justify-between px-1">
         <button onClick={onBack} className="flex items-center gap-2 text-slate-400 font-black text-[10px] md:text-xs uppercase tracking-widest hover:text-blue-600">
           {isRTL ? <ChevronRight size={14} /> : <ChevronLeft size={14} />} {t.backToHub}
@@ -287,7 +428,7 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
       
       <div className="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[4rem] shadow-xl border border-slate-50 relative overflow-hidden">
         <div className="absolute -top-4 -right-2 md:-top-10 md:-right-4 z-30">
-          <BirdAssistant state={lessonIsLoading ? 'thinking' : 'talking'} />
+          <BirdAssistant />
         </div>
         
         <div className="mb-6">

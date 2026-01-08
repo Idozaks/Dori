@@ -15,6 +15,12 @@ export enum ViewState {
 
 export type Language = 'en' | 'he' | 'es' | 'ru' | 'ar';
 
+export interface AccessibilitySettings {
+  voiceGuidance: boolean;
+  highContrast: boolean;
+  extraLargeText: boolean;
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'model';

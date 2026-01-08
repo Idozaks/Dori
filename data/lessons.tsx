@@ -50,16 +50,6 @@ const localizeInteractiveData = (data: any, lang: Language): any => {
   return localized;
 };
 
-const findCategoryIcon = (category: LessonCategory) => {
-  switch (category) {
-    case 'AI_BASICS': return <Cpu size={20} />;
-    case 'INTERNET_SKILLS': return <Navigation size={20} />;
-    case 'SAFETY': return <ShieldCheck size={20} />;
-    case 'LIFE_ADMIN': return <ClipboardCheck size={20} />;
-    default: return <Book size={20} />;
-  }
-};
-
 export const getLocalizedCategories = (lang: Language) => {
   const categories = {
     AI_BASICS: {
@@ -111,6 +101,61 @@ export const getLocalizedLessons = (lang: Language): Lesson[] => {
       ]
     },
     {
+      id: 'qr-codes',
+      category: 'INTERNET_SKILLS' as LessonCategory,
+      title: { en: 'Scanning QR Codes', he: 'סריקת קודי QR' },
+      shortDesc: { en: 'Master menus, tickets, and tracking.', he: 'שלטו בתפריטים, כרטיסים ומעקב.' },
+      icon: <QrCode size={20} />,
+      steps: [
+        { title: { en: 'Scan', he: 'סריקה' }, content: { en: 'QR codes are smart barcodes you scan with your camera.', he: 'קודי QR הם ברקודים חכמים שסורקים עם המצלמה.' } },
+        { title: { en: 'Practice', he: 'תרגול' }, content: { en: 'Try scanning the code on this table.', he: 'נסו לסרוק את הקוד על השולחן.' }, interactiveType: 'SIMULATED_QR', interactiveData: { backgroundPrompt: "A minimalist vector illustration of a restaurant table with a QR code.", actions: [{ id: 'MENU', label: { en: 'Menu', he: 'תפריט' }, overlayTitle: { en: 'Specials', he: 'מיוחדים' }, overlayContent: { en: 'Delicious food here!', he: 'אוכל טעים כאן!' } }] } }
+      ]
+    },
+    {
+      id: 'online-shopping',
+      category: 'INTERNET_SKILLS' as LessonCategory,
+      title: { en: 'Safe Online Shopping', he: 'קניות בטוחות באינטרנט' },
+      shortDesc: { en: 'Learn to buy items securely from your phone.', he: 'למדו לקנות פריטים בבטחה מהטלפון.' },
+      icon: <ShoppingCart size={20} />,
+      steps: [
+        { title: { en: 'The Digital Cart', he: 'העגלה הדיגיטלית' }, content: { en: 'Add items to your cart just like in a real store.', he: 'הוסיפו פריטים לעגלה ממש כמו בחנות אמיתית.' } },
+        { title: { en: 'Secure Checkout', he: 'תשלום מאובטח' }, content: { en: 'Learn how to enter payment details safely.', he: 'למדו איך להזין פרטי תשלום בבטחה.' }, interactiveType: 'SECURE_CHECKOUT' },
+      ]
+    },
+    {
+      id: 'digital-pharmacy',
+      category: 'LIFE_ADMIN' as LessonCategory,
+      title: { en: 'Pharmacy Refills', he: 'חידוש תרופות' },
+      shortDesc: { en: 'Refill your prescriptions without the long phone wait.', he: 'חדשו מרשמים בלי המתנה ארוכה בטלפון.' },
+      icon: <Pill size={20} />,
+      steps: [
+        { title: { en: 'Skip the Line', he: 'דלגו על התור' }, content: { en: 'Your pharmacy has an app. Let\'s practice ordering a refill.', he: 'לבית המרקחת שלכם יש אפליקציה. בואו נתרגל הזמנת חידוש.' } },
+        { title: { en: 'Order Refill', he: 'הזמן חידוש' }, content: { en: 'Enter your RX number to start.', he: 'הזינו את מספר המרשם כדי להתחיל.' }, interactiveType: 'SIMULATED_PHARMACY' },
+      ]
+    },
+    {
+      id: 'finding-your-way',
+      category: 'INTERNET_SKILLS' as LessonCategory,
+      title: { en: 'Finding Your Way', he: 'מצאו את דרככם' },
+      shortDesc: { en: 'Never get lost again with Digital Maps.', he: 'לעולם אל תלכו לאיבוד עם מפות דיגיטליות.' },
+      icon: <MapIcon size={20} />,
+      steps: [
+        { title: { en: 'The Digital Map', he: 'המפה הדיגיטלית' }, content: { en: 'Find any place by typing its name.', he: 'מצאו כל מקום על ידי הקלדת שמו.' } },
+        { title: { en: 'Search for a Spot', he: 'חפשו מקום' }, content: { en: 'Try searching for "Library" or "Pharmacy".', he: 'נסו לחפש "ספרייה" או "בית מרקחת".' }, interactiveType: 'SIMULATED_MAP' },
+      ]
+    },
+    {
+      id: 'spotting-scams',
+      category: 'SAFETY' as LessonCategory,
+      title: { en: 'Spotting Scams', he: 'זיהוי הונאות' },
+      shortDesc: { en: 'Identify fake messages and AI fakes.', he: 'זהו הודעות מזויפות וזיופי AI.' },
+      icon: <ShieldAlert size={20} />,
+      steps: [
+        { title: { en: 'Digital Detectives', he: 'בלשים דיגיטליים' }, content: { en: 'Scammers try to trick people. Dori helps you find the red flags.', he: 'נוכלים מנסים להונות אנשים. דורי עוזרת לכם למצוא את סימני האזהרה.' } },
+        { title: { en: 'Find the Fake', he: 'מצאו את הזיוף' }, content: { en: 'Move the lens to find AI mistakes in this photo.', he: 'הזיזו את העדשה למציאת טעויות AI בתמונה זו.' }, interactiveType: 'SIMULATED_LENS', interactiveData: { backgroundPrompt: "A photo of people where one person has 6 fingers and the clock is warped.", targets: [{ x: 30, y: 55, label: { en: 'AI Error!', he: 'טעות AI!' } }] } },
+      ],
+    },
+    {
       id: 'bureaucracy-lesson',
       category: 'LIFE_ADMIN' as LessonCategory,
       title: { en: 'Decoding Official Letters', he: 'פענוח מכתבים רשמיים' },
@@ -132,26 +177,22 @@ export const getLocalizedLessons = (lang: Language): Lesson[] => {
       ]
     },
     {
-      id: 'spotting-scams',
-      category: 'SAFETY' as LessonCategory,
-      title: { en: 'Spotting Scams', he: 'זיהוי הונאות' },
-      shortDesc: { en: 'Identify fake messages and AI fakes.', he: 'זהו הודעות מזויפות וזיופי AI.' },
-      icon: <ShieldAlert size={20} />,
-      steps: [
-        { title: { en: 'Detectives', he: 'בלשים' }, content: { en: 'Learn how to spot digital tricks.', he: 'למדו לזהות טריקים דיגיטליים.' } },
-        { title: { en: 'Is it Real?', he: 'זה אמיתי?' }, content: { en: 'Move the lens to find AI mistakes.', he: 'הזיזו את העדשה למציאת טעויות AI.' }, interactiveType: 'SIMULATED_LENS', interactiveData: { backgroundPrompt: "A photo of people where one person has 6 fingers and the clock is warped.", targets: [{ x: 30, y: 55, label: { en: 'AI Error!', he: 'טעות AI!' } }] } },
-      ],
-    },
-    {
-      id: 'qr-codes',
+      id: 'bus-payments',
       category: 'INTERNET_SKILLS' as LessonCategory,
-      title: { en: 'Scanning QR Codes', he: 'סריקת קודי QR' },
-      shortDesc: { en: 'Master menus, tickets, and tracking.', he: 'שלטו בתפריטים, כרטיסים ומעקב.' },
-      icon: <QrCode size={20} />,
+      title: { en: 'Digital Bus Payments', he: 'תשלום באוטובוס' },
+      shortDesc: { en: 'Pay for your ride with your phone.', he: 'שלמו על הנסיעה עם הטלפון.' },
+      icon: <Bus size={20} />,
       steps: [
-        { title: { en: 'Scan', he: 'סריקה' }, content: { en: 'QR codes are smart barcodes you scan with your camera.', he: 'קודי QR הם ברקודים חכמים שסורקים עם המצלמה.' } },
-        { title: { en: 'Practice', he: 'תרגול' }, content: { en: 'Try scanning the code on this table.', he: 'נסו לסרוק את הקוד על השולחן.' }, interactiveType: 'SIMULATED_QR', interactiveData: { backgroundPrompt: "A minimalist vector illustration of a restaurant table with a QR code.", actions: [{ id: 'MENU', label: { en: 'Menu', he: 'תפריט' }, overlayTitle: { en: 'Specials', he: 'מיוחדים' }, overlayContent: { en: 'Delicious food here!', he: 'אוכל טעים כאן!' } }] } }
-      ]
+        { title: { en: 'No Cash?', he: 'אין מזומן?' }, content: { en: 'Many buses now use QR codes for payment.', he: 'אוטובוסים רבים משתמשים כיום בקודי QR לתשלום.' } },
+        { 
+          title: { en: 'Pay', he: 'תשלום' }, 
+          content: { en: 'Scan the bus pole code.', he: 'סרקו את הקוד שעל עמוד האוטובוס.' }, 
+          interactiveType: 'SIMULATED_BUS_PAYMENT', 
+          interactiveData: { 
+            backgroundPrompt: "A clean graphic illustration of a city bus interior showing a bright yellow payment pole with a QR code scanner. Vector style, flat design, high contrast." 
+          } 
+        },
+      ],
     }
   ];
 

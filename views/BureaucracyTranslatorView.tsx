@@ -1,10 +1,15 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Button } from '../components/Button';
 import { LoadingBar } from '../components/LoadingBar';
 import { Language } from '../types';
 import { UI_STRINGS } from '../i18n/translations';
-import { Camera, X, ClipboardCheck, AlertTriangle, Calendar, CheckSquare, Info, ShieldAlert, Type, Image as ImageIcon, Sparkles, Wand2, Key } from 'lucide-react';
+import { generateSpeech, decode, decodeAudioData } from '../services/geminiService';
+import { 
+  Camera, X, ClipboardCheck, AlertTriangle, Calendar, CheckSquare, Info, 
+  ShieldAlert, Type, Image as ImageIcon, Sparkles, Volume2, StopCircle, RefreshCw 
+} from 'lucide-react';
 
 interface AnalysisResult {
   docType: string;
@@ -17,102 +22,94 @@ interface AnalysisResult {
 
 export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) => {
   const t = UI_STRINGS[lang];
-  const [inputMethod, setInputMethod] = useState<'photo' | 'text' | 'generate' | null>(null);
+  const [inputMethod, setInputMethod] = useState<'photo' | 'text' | 'camera' | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [pastedText, setPastedText] = useState<string>('');
   const [mimeType, setMimeType] = useState<string>('');
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasKey, setHasKey] = useState<boolean | null>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const currentAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   useEffect(() => {
-    const checkStatus = async () => {
-      const aistudio = (window as any).aistudio;
-      if (aistudio) {
-        const selected = await aistudio.hasSelectedApiKey();
-        setHasKey(selected);
+    return () => {
+      stopAudio();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
       }
     };
-    checkStatus();
   }, []);
-
-  const handleOpenKeyDialog = async () => {
-    const aistudio = (window as any).aistudio;
-    if (aistudio) {
-      await aistudio.openSelectKey();
-      setHasKey(true);
-      setError(null);
-    }
-  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
+        const result = reader.result as string;
+        setSelectedImage(result);
         setMimeType(file.type);
         setAnalysis(null);
         setError(null);
+        // Automatically trigger translation once image is selected/shot
+        handleTranslate(result, file.type);
       };
       reader.readAsDataURL(file);
+    } else {
+      // If user cancels file picker, reset input method to show grid again
+      setInputMethod(null);
     }
   };
 
-  const handleGenerateSample = async () => {
-    if (!hasKey) {
-      await handleOpenKeyDialog();
+  const stopAudio = () => {
+    if (currentAudioSourceRef.current) {
+      try {
+        currentAudioSourceRef.current.stop();
+      } catch (e) {}
+      currentAudioSourceRef.current.disconnect();
+      currentAudioSourceRef.current = null;
+    }
+    setIsPlayingAudio(false);
+  };
+
+  const playAnalysisAudio = async () => {
+    if (!analysis) return;
+    if (isPlayingAudio) {
+      stopAudio();
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-    setInputMethod('photo'); // Transition to photo view once generated
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    }
 
+    setIsPlayingAudio(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const languageName = lang === 'he' ? 'Hebrew' : 'English';
+      const textToRead = `${analysis.docType}. ${analysis.plainEnglish}`;
+      const base64Audio = await generateSpeech(textToRead, 'Zephyr', { lang });
+      const audioBuffer = await decodeAudioData(decode(base64Audio), audioContextRef.current, 24000, 1);
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-image-preview',
-        contents: {
-          parts: [{ 
-            text: `A very simple, clear official notice on a wooden table. The paper has very large, bold, easy-to-read text in ${languageName}. Simple layout with clear sections, large font size, and high contrast. No fine print or crowded text. Professional but extremely legible. No hands visible.` 
-          }],
-        },
-        config: {
-          imageConfig: { aspectRatio: "3:4" }
-        },
-      });
-
-      let imageData = '';
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          imageData = `data:image/png;base64,${part.inlineData.data}`;
-          break;
-        }
-      }
-
-      if (imageData) {
-        setSelectedImage(imageData);
-        setMimeType('image/png');
-      } else {
-        throw new Error("No image generated");
-      }
+      const source = audioContextRef.current.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContextRef.current.destination);
+      source.onended = () => setIsPlayingAudio(false);
+      source.start(0);
+      currentAudioSourceRef.current = source;
     } catch (err) {
-      console.error("Sample generation error:", err);
-      setError(t.failedToCreateImage);
-      setInputMethod(null);
-    } finally {
-      setIsLoading(false);
+      console.error("Audio playback error:", err);
+      setIsPlayingAudio(false);
     }
   };
 
-  const handleTranslate = async () => {
-    if (!selectedImage && !pastedText.trim()) return;
+  const handleTranslate = async (imageOverride?: string, mimeOverride?: string) => {
+    const imgToUse = imageOverride || selectedImage;
+    const mimeToUse = mimeOverride || mimeType;
+
+    if (!imgToUse && !pastedText.trim()) return;
 
     setIsLoading(true);
     setError(null);
@@ -142,11 +139,11 @@ export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) =>
 
       const contents: any[] = [];
       
-      if (selectedImage) {
-        const base64Data = selectedImage.split(',')[1];
+      if (imgToUse) {
+        const base64Data = imgToUse.split(',')[1];
         contents.push({
           parts: [
-            { inlineData: { mimeType: mimeType, data: base64Data } },
+            { inlineData: { mimeType: mimeToUse, data: base64Data } },
             { text: systemPrompt }
           ]
         });
@@ -176,6 +173,7 @@ export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) =>
   };
 
   const resetAll = () => {
+    stopAudio();
     setAnalysis(null);
     setSelectedImage(null);
     setPastedText('');
@@ -239,15 +237,28 @@ export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) =>
                 <div className="bg-white/90 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-3 shadow-lg border border-orange-100">
                   <Sparkles className="text-orange-500 animate-spin" size={24} />
                   <span className="text-orange-600 font-black uppercase tracking-widest text-sm">
-                    {inputMethod === 'generate' ? t.generatingSample : t.analyzingDoc}
+                    {t.analyzingDoc}
                   </span>
                 </div>
               </div>
             </div>
-            <LoadingBar message={inputMethod === 'generate' ? t.generatingSample : t.analyzingDoc} lang={lang} estimatedDuration={inputMethod === 'generate' ? 12000 : 10000} />
+            <LoadingBar message={t.analyzingDoc} lang={lang} estimatedDuration={10000} />
           </div>
         ) : analysis ? (
           <div className="space-y-8 animate-fade-in">
+            {selectedImage && (
+              <div className="relative rounded-[2rem] overflow-hidden border-4 border-slate-100 shadow-xl max-h-[400px]">
+                <img src={selectedImage} alt="Scanned Document" className="w-full h-full object-contain bg-slate-50" />
+                <button 
+                  onClick={playAnalysisAudio}
+                  className="absolute bottom-6 right-6 p-5 bg-orange-600 text-white rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all z-30"
+                  title={t.readAloud}
+                >
+                  {isPlayingAudio ? <StopCircle size={32} /> : <Volume2 size={32} />}
+                </button>
+              </div>
+            )}
+
             <div className={`p-6 rounded-[2rem] border-4 flex items-center gap-4 ${getUrgencyColor(analysis.urgency)}`}>
               <AlertTriangle size={32} />
               <div className="flex-1">
@@ -259,11 +270,16 @@ export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) =>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-slate-50 p-8 rounded-[2.5rem] border-2 border-slate-100">
-                <h4 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
-                  <Info size={24} className="text-blue-500" /> {t.noJargon}
-                </h4>
-                <div className="text-lg font-medium text-slate-700 leading-relaxed">
+              <div className="bg-slate-50 p-8 rounded-[2.5rem] border-2 border-slate-100 flex flex-col">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                    <Info size={24} className="text-blue-500" /> {t.noJargon}
+                  </h4>
+                </div>
+                <div className="text-xl font-bold text-slate-700 leading-relaxed italic">
+                  "{analysis.summary}"
+                </div>
+                <div className="mt-4 text-lg font-medium text-slate-600 leading-relaxed">
                   {analysis.plainEnglish}
                 </div>
               </div>
@@ -298,32 +314,64 @@ export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) =>
               </div>
             )}
 
-            <div className="flex gap-4">
-              <Button onClick={resetAll} variant="secondary" fullWidth className="!py-6 !text-xl !rounded-2xl">
-                {t.startOverNewPhoto}
+            <div className="flex gap-4 pt-6">
+              <Button onClick={resetAll} variant="secondary" fullWidth className="!py-6 !text-xl !rounded-2xl shadow-md">
+                <RefreshCw size={24} className="mr-2" /> {t.startOverNewPhoto}
               </Button>
             </div>
           </div>
-        ) : !inputMethod ? (
+        ) : inputMethod === 'text' ? (
+          <div className="space-y-6">
+            <textarea
+              value={pastedText}
+              onChange={(e) => setPastedText(e.target.value)}
+              placeholder={t.enterTextHere}
+              className="w-full p-6 text-xl border-4 border-slate-100 rounded-[2rem] min-h-[300px] outline-none focus:border-blue-500 transition-all shadow-inner"
+            />
+            <div className="flex gap-4">
+              <Button onClick={() => setInputMethod(null)} variant="secondary" className="flex-1 !py-5 shadow-md">
+                {t.back}
+              </Button>
+              <Button onClick={() => handleTranslate()} disabled={!pastedText.trim()} className="flex-1 !py-5 shadow-lg">
+                {t.analyzeText}
+              </Button>
+            </div>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <button 
-              onClick={() => setInputMethod('photo')}
-              className="border-4 border-slate-100 rounded-[2.5rem] p-10 text-center hover:border-orange-500 hover:bg-orange-50 transition-all group flex flex-col items-center gap-4"
+              onClick={() => { setInputMethod('camera'); setTimeout(() => cameraInputRef.current?.click(), 100); }}
+              className="border-4 border-slate-100 rounded-[2.5rem] p-10 text-center hover:border-orange-500 hover:bg-orange-50 transition-all group flex flex-col items-center gap-4 shadow-sm active:scale-95"
             >
-              <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform shadow-inner">
-                <Camera size={40} />
+              <div className="bg-orange-100 w-24 h-24 rounded-full flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform shadow-inner">
+                <Camera size={48} />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xl font-black text-slate-800">{t.scanLetter}</h3>
-                <p className="text-base text-slate-500 font-medium">{t.takeDocPhoto}</p>
+                <h3 className="text-2xl font-black text-slate-800">{t.takePhoto}</h3>
+                <p className="text-lg text-slate-500 font-medium">{t.takeDocPhoto}</p>
               </div>
+              <input type="file" ref={cameraInputRef} className="hidden" accept="image/*" capture="environment" onChange={handleFileSelect} />
+            </button>
+
+            <button 
+              onClick={() => { setInputMethod('photo'); setTimeout(() => fileInputRef.current?.click(), 100); }}
+              className="border-4 border-slate-100 rounded-[2.5rem] p-10 text-center hover:border-blue-500 hover:bg-blue-50 transition-all group flex flex-col items-center gap-4 shadow-sm active:scale-95"
+            >
+              <div className="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform shadow-inner">
+                <ImageIcon size={48} />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-2xl font-black text-slate-800">{t.uploadPhoto}</h3>
+                <p className="text-lg text-slate-500 font-medium">{t.uploadPhotoForEditOrAnalysis}</p>
+              </div>
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileSelect} />
             </button>
 
             <button 
               onClick={() => setInputMethod('text')}
-              className="border-4 border-slate-100 rounded-[2.5rem] p-10 text-center hover:border-blue-500 hover:bg-blue-50 transition-all group flex flex-col items-center gap-4"
+              className="border-4 border-slate-100 rounded-[2.5rem] p-10 text-center hover:border-blue-500 hover:bg-blue-50 transition-all group flex flex-col items-center gap-4 sm:col-span-2 shadow-sm active:scale-95"
             >
-              <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform shadow-inner">
+              <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center text-slate-600 group-hover:scale-110 transition-transform shadow-inner">
                 <Type size={40} />
               </div>
               <div className="space-y-1">
@@ -331,69 +379,12 @@ export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) =>
                 <p className="text-base text-slate-500 font-medium">{t.enterTextHere}</p>
               </div>
             </button>
-
-            <button 
-              onClick={() => { setInputMethod('generate'); handleGenerateSample(); }}
-              className="sm:col-span-2 border-4 border-slate-100 rounded-[2.5rem] p-10 text-center hover:border-indigo-500 hover:bg-indigo-50 transition-all group flex flex-col items-center gap-4 bg-slate-50/50"
-            >
-              <div className="bg-indigo-100 w-20 h-20 rounded-full flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform shadow-inner">
-                <Wand2 size={40} />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-xl font-black text-slate-800">{t.generateSample}</h3>
-                <p className="text-base text-slate-500 font-medium max-w-sm mx-auto">{t.needApiKeyForSample}</p>
-              </div>
-            </button>
-          </div>
-        ) : inputMethod === 'photo' ? (
-          <div className="space-y-6 animate-fade-in">
-             {!selectedImage ? (
-               <div 
-                 onClick={() => fileInputRef.current?.click()}
-                 className="border-4 border-dashed border-slate-200 rounded-[2rem] p-16 text-center cursor-pointer hover:bg-slate-50 hover:border-orange-300 transition-all group shadow-inner"
-               >
-                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileSelect} />
-                 <div className="bg-orange-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform shadow-sm">
-                   <ImageIcon size={40} className="text-orange-500" />
-                 </div>
-                 <h3 className="text-2xl font-black text-slate-700 mb-3">{t.uploadPhoto}</h3>
-                 <p className="text-xl text-slate-500 max-w-md mx-auto">{t.takeDocPhoto}</p>
-               </div>
-             ) : (
-               <div className="space-y-6">
-                 <div className="aspect-[4/5] relative rounded-[2rem] overflow-hidden border-4 border-slate-100 shadow-inner max-w-md mx-auto">
-                   <img src={selectedImage} alt="Document" className="w-full h-full object-cover" />
-                   <button onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 bg-white/90 p-3 rounded-full shadow-lg text-slate-600">
-                     <X size={24} />
-                   </button>
-                 </div>
-                 <Button onClick={handleTranslate} fullWidth className="!py-8 !text-2xl !rounded-3xl shadow-xl shadow-orange-100">
-                   <ShieldAlert size={32} /> {t.translateDoc || "Translate Document"}
-                 </Button>
-               </div>
-             )}
-             <Button variant="secondary" onClick={() => setInputMethod(null)} className="w-full !rounded-2xl !py-4">{t.back}</Button>
-          </div>
-        ) : (
-          <div className="space-y-6 animate-fade-in">
-            <div className="bg-white p-6 rounded-[2rem] border-4 border-blue-50 shadow-inner focus-within:border-blue-400 transition-all">
-              <textarea
-                value={pastedText}
-                onChange={(e) => setPastedText(e.target.value)}
-                placeholder={t.enterTextHere}
-                className="w-full min-h-[300px] bg-transparent text-xl font-medium outline-none text-slate-800 placeholder:text-slate-300 p-2 leading-relaxed"
-              />
-            </div>
-            <Button onClick={handleTranslate} disabled={!pastedText.trim()} fullWidth className="!py-8 !text-2xl !rounded-3xl shadow-xl shadow-blue-100 !bg-blue-600 hover:!bg-blue-700">
-              <ShieldAlert size={32} /> {t.analyzeText}
-            </Button>
-            <Button variant="secondary" onClick={() => setInputMethod(null)} className="w-full !rounded-2xl !py-4">{t.back}</Button>
           </div>
         )}
-
+        
         {error && (
-          <div className="mt-6 bg-red-50 p-6 rounded-2xl border-2 border-red-100 text-red-700 font-black flex items-center gap-3">
-            <AlertTriangle /> {error}
+          <div className="mt-6 p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 font-bold text-center">
+            {error}
           </div>
         )}
       </div>
