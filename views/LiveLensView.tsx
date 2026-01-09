@@ -20,6 +20,7 @@ export const LiveLensView: React.FC<LiveLensViewProps> = ({ lang, onBack }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [outputTranscription, setOutputTranscription] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -29,10 +30,9 @@ export const LiveLensView: React.FC<LiveLensViewProps> = ({ lang, onBack }) => {
   const inputAudioContextRef = useRef<AudioContext | null>(null);
   const outputAudioContextRef = useRef<AudioContext | null>(null);
   const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   const frameIntervalRef = useRef<number | null>(null);
 
-  const FRAME_RATE = 1; // 1 frame per second is enough for most descriptive tasks and lowers cost/bandwidth
+  const FRAME_RATE = 1; 
   const JPEG_QUALITY = 0.6;
 
   function encode(bytes: Uint8Array) {
@@ -43,6 +43,14 @@ export const LiveLensView: React.FC<LiveLensViewProps> = ({ lang, onBack }) => {
     }
     return btoa(binary);
   }
+
+  // Handle stream assignment to video element after it mounts
+  useEffect(() => {
+    if (isActive && activeStream && videoRef.current) {
+      videoRef.current.srcObject = activeStream;
+      videoRef.current.play().catch(e => console.error("Video play failed:", e));
+    }
+  }, [isActive, activeStream]);
 
   const stopSession = useCallback(() => {
     if (sessionRef.current) {
@@ -60,9 +68,9 @@ export const LiveLensView: React.FC<LiveLensViewProps> = ({ lang, onBack }) => {
       frameIntervalRef.current = null;
     }
 
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
+    if (activeStream) {
+      activeStream.getTracks().forEach(track => track.stop());
+      setActiveStream(null);
     }
 
     for (const source of sourcesRef.current) {
@@ -72,7 +80,7 @@ export const LiveLensView: React.FC<LiveLensViewProps> = ({ lang, onBack }) => {
     
     setIsActive(false);
     setIsConnecting(false);
-  }, []);
+  }, [activeStream]);
 
   const startSession = async () => {
     setError(null);
@@ -82,13 +90,14 @@ export const LiveLensView: React.FC<LiveLensViewProps> = ({ lang, onBack }) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: true, 
-        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } 
+        video: { 
+          facingMode: 'environment', 
+          width: { ideal: 1280 }, 
+          height: { ideal: 720 } 
+        } 
       });
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
+      
+      setActiveStream(stream);
 
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
@@ -127,7 +136,7 @@ export const LiveLensView: React.FC<LiveLensViewProps> = ({ lang, onBack }) => {
 
             // Setup Video Frame Streaming
             frameIntervalRef.current = window.setInterval(() => {
-              if (videoRef.current && canvasRef.current && isActive) {
+              if (videoRef.current && canvasRef.current && videoRef.current.readyState >= 2) {
                 const video = videoRef.current;
                 const canvas = canvasRef.current;
                 const ctx = canvas.getContext('2d');
@@ -202,9 +211,9 @@ export const LiveLensView: React.FC<LiveLensViewProps> = ({ lang, onBack }) => {
         }
       });
       sessionRef.current = await sessionPromise;
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      setError(t.aiConnectionIssue);
+      setError(e.message || t.aiConnectionIssue);
       setIsConnecting(false);
     }
   };
@@ -221,7 +230,7 @@ export const LiveLensView: React.FC<LiveLensViewProps> = ({ lang, onBack }) => {
 
       <div className="flex-1 bg-white rounded-[3rem] shadow-2xl border-4 border-slate-50 relative flex flex-col items-center justify-center overflow-hidden">
         {isActive && (
-          <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 z-0 bg-black">
              <video 
                ref={videoRef} 
                autoPlay 
