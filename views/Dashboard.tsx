@@ -5,8 +5,7 @@ import { UI_STRINGS } from '../i18n/translations';
 import { Language, UserAccount, ViewState, AccessibilitySettings } from '../types';
 import { ProgressBar } from '../components/ProgressBar';
 import { getLocalizedLessons } from '../data/lessons';
-// Added Search icon to the lucide-react imports to fix the "Cannot find name 'Search'" error.
-import { Sparkles, BookOpen, Camera, GraduationCap, Globe, ClipboardCheck, Info, Book, X, Volume2, Search } from 'lucide-react';
+import { Sparkles, BookOpen, Camera, GraduationCap, Globe, ClipboardCheck, Info, Book, X, Volume2, Search, ShieldAlert, Layout, Compass, Eye } from 'lucide-react'; 
 import { Avatar } from '../components/Avatar';
 import { generateSpeech, decode, decodeAudioData } from '../services/geminiService';
 
@@ -98,7 +97,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, progress, lang
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
+        {/* Decision Dashboard - The Active Guided Navigation Path */}
+        <Button onClick={() => onNavigate(ViewState.DECISION_DASHBOARD)} className={`flex-col !py-8 md:!py-12 !text-base md:!text-xl !rounded-[2rem] shadow-xl col-span-2 sm:col-span-3 md:col-span-6 !bg-blue-700 hover:!bg-blue-800 border-4 border-blue-900 group`}>
+          <Compass size={accessibility.extraLargeText ? 64 : 48} className="mb-4 text-blue-200 group-hover:rotate-45 transition-transform duration-500" /> 
+          <span className="text-white text-3xl md:text-5xl font-black">{t.decisionDashboard}</span>
+          <span className="text-blue-200 text-sm md:text-lg mt-2">{t.decisionDashboardDesc}</span>
+        </Button>
+
+        {/* Live AI Lens - New Tool */}
+        <Button onClick={() => onNavigate(ViewState.LIVE_LENS)} className={`flex-col !py-8 md:!py-12 !text-base md:!text-xl !rounded-[2rem] shadow-xl col-span-2 sm:col-span-3 md:col-span-6 !bg-purple-600 hover:!bg-purple-700 border-4 border-purple-800 group`}>
+          <Eye size={accessibility.extraLargeText ? 64 : 48} className="mb-2 text-purple-100 animate-pulse" /> 
+          <span className="text-white text-2xl md:text-4xl font-black">{t.liveLens}</span>
+          <span className="text-purple-100 text-sm md:text-base mt-1">{t.liveLensDesc}</span>
+        </Button>
+
         <Button onClick={() => onNavigate(ViewState.LESSON_HUB)} className={`flex-col !py-8 md:!py-12 !text-base md:!text-xl !rounded-[2rem] shadow-xl ${accessibility.highContrast ? '!bg-slate-800 !border-slate-700 border-4' : '!bg-blue-600'}`}>
           <BookOpen size={accessibility.extraLargeText ? 48 : 32} className="mb-2" /> {t.myLessons}
         </Button>
@@ -110,6 +123,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, progress, lang
         </Button>
         <Button onClick={() => onNavigate(ViewState.IMAGE_ANALYZE)} className={`flex-col !py-8 md:!py-12 !text-base md:!text-xl !rounded-[2rem] shadow-xl ${accessibility.highContrast ? '!bg-slate-800 !border-slate-700 border-4' : '!bg-slate-700'}`}>
           <Camera size={accessibility.extraLargeText ? 48 : 32} className="mb-2" /> {t.explainPhotos}
+        </Button>
+        <Button onClick={() => onNavigate(ViewState.MIRROR_SANDBOX)} className={`flex-col !py-8 md:!py-12 !text-base md:!text-xl !rounded-[2rem] shadow-xl ${accessibility.highContrast ? '!bg-slate-800 !border-slate-700 border-4' : '!bg-indigo-600'}`}>
+          <Layout size={accessibility.extraLargeText ? 48 : 32} className="mb-2" /> {t.mirrorWorld}
         </Button>
       </div>
 

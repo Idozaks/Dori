@@ -1,9 +1,10 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { generateTextResponse, generateSpeech, decode, decodeAudioData } from '../services/geminiService';
 import { Message, Language } from '../types';
 import { Button } from '../components/Button';
 import { Markdown } from '../components/Markdown';
-import { BrainCircuit, Send, User, Bot, Sparkles, Terminal, Globe, Volume2, StopCircle, PlusCircle, ArrowRight, MessageSquareText, ExternalLink } from 'lucide-react';
+import { BrainCircuit, Send, User, Bot, Sparkles, Terminal, Globe, Volume2, StopCircle, PlusCircle, ArrowRight, MessageSquareText, ExternalLink, Loader2 } from 'lucide-react';
 import { UI_STRINGS } from '../i18n/translations';
 
 interface ChatViewProps {
@@ -27,19 +28,18 @@ export const ChatView: React.FC<ChatViewProps> = ({ lang }) => {
   const [useThinking, setUseThinking] = useState(false);
   const [useSearchGrounding, setUseSearchGrounding] = useState(false);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [isSpeechLoading, setIsSpeechLoading] = useState(false);
   const [chatLoadingProgress, setChatLoadingProgress] = useState(0);
   const [chatLoadingMessage, setChatLoadingMessage] = useState('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const currentAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const speechRequestIdRef = useRef(0);
 
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
-
-  // We removed the automatic useEffect for scrolling to satisfy the request 
-  // that AI messages don't force a scroll.
 
   useEffect(() => {
     if (!audioContextRef.current) {
@@ -58,33 +58,52 @@ export const ChatView: React.FC<ChatViewProps> = ({ lang }) => {
   }, [isRTL]);
 
   const stopCurrentAudio = () => {
+    speechRequestIdRef.current++;
     if (currentAudioSourceRef.current) {
-      currentAudioSourceRef.current.stop();
+      try { currentAudioSourceRef.current.stop(); } catch (e) {}
       currentAudioSourceRef.current.disconnect();
       currentAudioSourceRef.current = null;
     }
     setPlayingAudioId(null);
+    setIsSpeechLoading(false);
   };
 
   const playAudio = async (messageId: string, text: string) => {
     if (!audioContextRef.current) return;
     stopCurrentAudio();
+    const requestId = speechRequestIdRef.current;
     setPlayingAudioId(messageId);
+    setIsSpeechLoading(true);
+    
     try {
       const base64Audio = await generateSpeech(text, 'Zephyr', {
         lang: lang,
         onProgress: (p) => setChatLoadingProgress(p)
       });
+
+      if (requestId !== speechRequestIdRef.current) return;
+
       const audioBuffer = await decodeAudioData(decode(base64Audio), audioContextRef.current, 24000, 1);
+      
+      if (requestId !== speechRequestIdRef.current) return;
+
+      setIsSpeechLoading(false);
       const source = audioContextRef.current.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(audioContextRef.current.destination);
-      source.onended = () => setPlayingAudioId(null);
+      source.onended = () => {
+        if (requestId === speechRequestIdRef.current) {
+          setPlayingAudioId(null);
+        }
+      };
       source.start(0);
       currentAudioSourceRef.current = source;
     } catch (error) {
       console.error("Audio error:", error);
-      setPlayingAudioId(null);
+      if (requestId === speechRequestIdRef.current) {
+        setPlayingAudioId(null);
+        setIsSpeechLoading(false);
+      }
     }
   };
 
@@ -106,7 +125,6 @@ export const ChatView: React.FC<ChatViewProps> = ({ lang }) => {
     const userMsg: Message = { id: Date.now().toString(), role: 'user', text: trimmedInput };
     setMessages(prev => [...prev, userMsg]);
     
-    // Explicitly scroll when the user sends a message so they see their own text appear
     setTimeout(() => scrollToBottom('smooth'), 50);
 
     setInput('');
@@ -130,9 +148,6 @@ export const ChatView: React.FC<ChatViewProps> = ({ lang }) => {
       setMessages(prev => [...prev, aiMsg]);
       setIsLoading(false);
       fetchSuggestions(responseText);
-      
-      // We do NOT call scrollToBottom here, allowing the user to stay 
-      // where they are if they were reading previous messages.
     } catch (error) {
       setIsLoading(false);
       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: t.aiConnectionIssue }]);
@@ -176,7 +191,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ lang }) => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 md:space-y-10 scroll-smooth bg-slate-50/20">
+      <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 md:space-y-10 scroll-smooth bg-dots opacity-30 bg-slate-50/20">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
             <div className={`max-w-[90%] md:max-w-[75%] relative flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
@@ -194,11 +209,15 @@ export const ChatView: React.FC<ChatViewProps> = ({ lang }) => {
                 
                 {msg.role === 'model' && (
                   <button
-                    onClick={() => playingAudioId === msg.id ? stopCurrentAudio() : playAudio(msg.id, msg.text)}
+                    onClick={() => playingAudioId === msg.id || (playingAudioId === msg.id && isSpeechLoading) ? stopCurrentAudio() : playAudio(msg.id, msg.text)}
                     className="mt-4 flex items-center gap-2 text-blue-600 text-xs md:text-sm font-black uppercase tracking-widest hover:bg-blue-50 py-2 px-4 rounded-full transition-all border border-blue-100"
                   >
                     {playingAudioId === msg.id ? (
-                      <><span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" /> {t.stopReading}</>
+                      isSpeechLoading ? (
+                        <><Loader2 size={16} className="animate-spin" /> {t.preparingAIWorld}</>
+                      ) : (
+                        <><span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" /> {t.stopReading}</>
+                      )
                     ) : (
                       <><Volume2 size={16} /> {t.readAloud}</>
                     )}

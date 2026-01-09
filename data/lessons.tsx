@@ -47,6 +47,12 @@ const localizeInteractiveData = (data: any, lang: Language): any => {
       overlayContent: typeof action.overlayContent === 'object' ? localize(action.overlayContent, lang) : action.overlayContent,
     }));
   }
+  if (localized.initialPrompt && typeof localized.initialPrompt === 'object') {
+    localized.initialPrompt = localize(localized.initialPrompt, lang);
+  }
+  if (localized.examplePrompt && typeof localized.examplePrompt === 'object') {
+    localized.examplePrompt = localize(localized.examplePrompt, lang);
+  }
   return localized;
 };
 
@@ -82,6 +88,84 @@ export const getLocalizedCategories = (lang: Language) => {
 
 export const getLocalizedLessons = (lang: Language): Lesson[] => {
   const allLessonsData = [
+    // --- AI BASICS LESSONS ---
+    {
+      id: 'what-is-ai',
+      category: 'AI_BASICS' as LessonCategory,
+      title: { en: 'What is AI?', he: 'מה זה AI?' },
+      shortDesc: { en: 'Understand what Artificial Intelligence is and how it helps.', he: 'הבינו מהי בינה מלאכותית ואיך היא עוזרת.' },
+      icon: <Sparkles size={20} />,
+      steps: [
+        {
+          title: { en: 'What is AI? A Smart Helper', he: 'מה זה AI? עוזר חכם' },
+          content: { en: 'AI stands for Artificial Intelligence. Think of it as a very smart computer program that can learn, understand, and help solve problems, much like a clever apprentice. It\'s designed to make tasks easier for you, from answering questions to organizing information.', he: 'AI מייצג בינה מלאכותית. חשבו על זה כעל תוכנת מחשב חכמה מאוד שיכולה ללמוד, להבין ולעזור בפתרון בעיות, בדומה לחניך פיקח. היא נועדה להקל עליכם במשימות, החל ממענה על שאלות ועד ארגון מידע.' },
+        },
+        {
+          title: { en: 'How Does AI Learn?', he: 'איך AI לומד?' },
+          content: { en: 'AI learns by looking at many examples, just like we learn from experience. For instance, to recognize a cat, AI looks at thousands of cat pictures until it understands what a cat looks like. The more examples it sees, the smarter it becomes at recognizing patterns and making decisions.', he: 'AI לומד על ידי התבוננות בדוגמאות רבות, בדיוק כמו שאנחנו לומדים מניסיון. לדוגמה, כדי לזהות חתול, AI בוחן אלפי תמונות של חתולים עד שהוא מבין איך חתול נראה. ככל שהוא רואה יותר דוגמאות, כך הוא הופך לחכם יותר בזיהוי תבניות וקבלת החלטות.' },
+        },
+        {
+          title: { en: 'AI All Around Us', he: 'AI בכל מקום סביבנו' },
+          content: { en: 'You might be using AI every day without even realizing it! When your phone suggests what word to type next, when a streaming service recommends a movie, or when your email filters out spam, that\'s AI at work. It\'s in navigation apps that find the best route, and even in some smart devices in your home that respond to your voice.', he: 'אתם עשויים להשתמש ב-AI בכל יום מבלי לשים לב! כשהטלפון שלכם מציע מילה להקליד הבאה, כשאפליקציית סטרימינג ממליצה על סרט, או כשהאימייל שלכם מסנן הודעות ספאם – זהו AI בפעולה. הוא נמצא באפליקציות ניווט שמוצאות את הדרך הטובה ביותר, ואפילו במכשירים חכמים מסוימים בביתכם שמגיבים לקולכם.' },
+        }
+      ]
+    },
+    {
+      id: 'talking-to-ai',
+      category: 'AI_BASICS' as LessonCategory,
+      title: { en: 'Talking to AI', he: 'שיחה עם AI' },
+      shortDesc: { en: 'Practice asking questions and getting answers from Dori.', he: 'תרגלו לשאול שאלות ולקבל תשובות מדורי.' },
+      icon: <MessageCircleMore size={20} />,
+      steps: [
+        {
+          title: { en: 'Your Conversational Buddy', he: 'החבר המדבר שלך' },
+          content: { en: 'Dori is a special kind of AI called a "conversational AI" or "chatbot." This means you can talk to her just like you would to a person, by typing your questions. Dori can help you with general information, write short messages for you, or simply chat about your day. She\'s here to assist you in a friendly and patient way.', he: 'דורי היא סוג מיוחד של AI הנקרא "AI שיחתי" או "צ\'אטבוט". זה אומר שאתם יכולים לדבר איתה בדיוק כמו עם אדם, על ידי הקלדת שאלותיכם. דורי יכולה לעזור לכם במידע כללי, לכתוב עבורכם הודעות קצרות, או פשוט לשוחח על יומכם. היא כאן כדי לסייע לכם בצורה ידידותית וסבלנית.' },
+        },
+        {
+          title: { en: 'Tips for Clear Communication', he: 'טיפים לתקשורת ברורה' },
+          content: { en: 'To get the best answers from Dori, it helps to be clear and specific in your questions. Imagine you\'re asking a helpful friend. For example, instead of just "Weather," try "What\'s the weather like in Tel Aviv tomorrow?" The more details you give, the better Dori can understand and respond accurately. Don\'t be afraid to ask follow-up questions if something isn\'t clear!', he: 'כדי לקבל את התשובות הטובות ביותר מדורי, כדאי להיות ברורים וממוקדים בשאלותיכם. דמיינו שאתם שואלים חבר מועיל. לדוגמה, במקום רק "מזג אוויר", נסו "איך מזג האוויר בתל אביב מחר?". ככל שתתנו יותר פרטים, כך דורי תוכל להבין טוב יותר ולהגיב במדויק. אל תהססו לשאול שאלות המשך אם משהו לא ברור!' },
+        },
+        {
+          title: { en: 'Practice Asking Dori Questions', he: 'תרגלו שאלות לדורי' },
+          content: { en: 'Now it\'s your turn to chat with Dori! In the box below, you can type any question you have. Remember the tips for clear communication. Try asking "How do I send a text message?" or "Tell me a simple recipe for cookies."', he: 'עכשיו תורכם לשוחח עם דורי! בתיבה למטה, תוכלו להקליד כל שאלה שיש לכם. זכרו את הטיפים לתקשורת ברורה. נסו לשאול "איך שולחים הודעת טקסט?" או "ספרי לי מתכון פשוט לעוגיות."' },
+          interactiveType: 'LIVE_AI_CHAT',
+          interactiveData: { initialPrompt: { en: 'Hello! I am Dori. How can I help you learn about AI?', he: 'שלום! אני דורי. איך אוכל לעזור לך ללמוד על AI?' }}
+        },
+        {
+          title: { en: 'What AI Can (and Cannot) Do', he: 'מה AI יכול (ומה לא)' },
+          content: { en: 'While Dori is incredibly smart and helpful, it\'s important to remember a few things. AI doesn\'t have feelings or personal opinions, and it learns from information it has been given. This means it might not always know about very recent events, or it could sometimes make a mistake. It\'s a tool to assist you, not a human, so always use your judgment with the information it provides.', he: 'אף שדורי חכמה ומועילה להפליא, חשוב לזכור כמה דברים. ל-AI אין רגשות או דעות אישיות, והוא לומד ממידע שניתן לו. זה אומר שהוא לא תמיד יידע על אירועים עדכניים מאוד, או שהוא עלול לפעמים לטעות. זהו כלי שנועד לסייע לכם, לא בן אדם, אז תמיד השתמשו בשיקול דעתכם עם המידע שהוא מספק.' },
+        }
+      ]
+    },
+    {
+      id: 'ai-for-creativity',
+      category: 'AI_BASICS' as LessonCategory,
+      title: { en: 'AI for Creativity', he: 'AI ליצירתיות' },
+      shortDesc: { en: 'Discover how AI can create amazing pictures from your words.', he: 'גלו איך AI יכול ליצור תמונות מדהימות מהמילים שלכם.' },
+      icon: <Wand2 size={20} />,
+      steps: [
+        {
+          title: { en: 'AI as an Artist: Making Pictures with Words', he: 'AI כאמן: יצירת תמונות ממילים' },
+          content: { en: 'Imagine you want to see a picture of something that doesn\'t exist, like "a blue elephant wearing a party hat." AI can make that image for you! You simply describe what you want, and the AI acts like a digital artist, bringing your words to life on a canvas. No need for paint, brushes, or special drawing skills – just your imagination!', he: 'דמיינו שאתם רוצים לראות תמונה של משהו שאינו קיים, כמו "פיל כחול עם כובע מסיבה". AI יכול ליצור עבורכם את התמונה הזו! אתם פשוט מתארים מה אתם רוצים לראות, וה-AI פועל כאמן דיגיטלי, מחיֵה את המילים שלכם על קנבס. אין צורך בצבע, מכחולים או כישורי ציור מיוחדים – רק בדמיונכם!' },
+        },
+        {
+          title: { en: 'Giving AI Good Instructions', he: 'מתן הנחיות טובות ל-AI' },
+          content: { en: 'To help AI create the best picture, it\'s helpful to be very descriptive in your words. Think about colors, objects, settings, and even feelings. For example, instead of "a dog," try "a fluffy golden retriever sitting happily in a sunny field with yellow flowers." The more vivid your description, the closer the AI will get to what you imagine.', he: 'כדי לעזור ל-AI ליצור את התמונה הטובה ביותר, כדאי להיות מאוד תיאוריים במילים שלכם. חשבו על צבעים, אובייקטים, תפאורה ואפילו רגשות. לדוגמה, במקום "כלב", נסו "גולדן רטריבר פרוותי יושב בשמחה בשדה שטוף שמש עם פרחים צהובים". ככל שהתיאור שלכם יהיה חי יותר, כך ה-AI יתקרב יותר למה שאתם מדמיינים.' },
+        },
+        {
+          title: { en: 'Your Creative Playground', he: 'מגרש המשחקים היצירתי שלך' },
+          content: { en: 'Now, let\'s try creating your own picture! In the box below, type a description of an image you\'d like AI to generate. Remember to be specific and use descriptive words to help the AI understand your vision. You can try something simple like "a calm beach at sunset" or "a colorful bird singing on a branch."', he: 'עכשיו, בואו ננסה ליצור תמונה משלכם! בתיבה למטה, הקלידו תיאור של תמונה שתרצו שה-AI יפיק. זכרו להיות ספציפיים ולהשתמש במילים תיאוריות כדי לעזור ל-AI להבין את החזון שלכם. אתם יכולים לנסות משהו פשוט כמו "חוף רגוע בשקיעה" או "ציפור צבעונית שרה על ענף."' },
+          interactiveType: 'SIMULATED_IMAGE_GENERATION',
+          interactiveData: { placeholder: { en: 'Describe your picture here...', he: 'תארו את התמונה כאן...' }, examplePrompt: { en: 'A tranquil forest with a sparkling river.', he: 'יער שליו עם נהר מנצנץ.' } }
+        },
+        {
+          title: { en: 'AI to Edit Photos', he: 'AI לעריכת תמונות' },
+          content: { en: 'Beyond creating new pictures, AI can also help you change existing photos! Imagine you have a picture of your garden, and you wish there was a cute dog sitting on the grass. You could tell AI to "add a small brown dog to the center of the lawn," and it would intelligently make that change for you. It\'s like having a digital photo editor that understands your spoken or typed instructions.', he: 'מעבר ליצירת תמונות חדשות, AI יכול גם לעזור לכם לשנות תמונות קיימות! דמיינו שיש לכם תמונה של הגינה שלכם, והייתם רוצים שיהיה בה כלב חמוד יושב על הדשא. תוכלו לומר ל-AI "הוסף כלב קטן וחום למרכז הדשא", והוא יבצע את השינוי הזה עבורכם בצורה חכמה. זה כמו שיש לכם עורך תמונות דיגיטלי שמבין את ההוראות שלכם בקול או בהקלדה.' },
+        }
+      ]
+    },
+
+    // --- INTERNET SKILLS LESSONS ---
     {
       id: 'internet-basics',
       category: 'INTERNET_SKILLS' as LessonCategory,
@@ -123,17 +207,6 @@ export const getLocalizedLessons = (lang: Language): Lesson[] => {
       ]
     },
     {
-      id: 'digital-pharmacy',
-      category: 'LIFE_ADMIN' as LessonCategory,
-      title: { en: 'Pharmacy Refills', he: 'חידוש תרופות' },
-      shortDesc: { en: 'Refill your prescriptions without the long phone wait.', he: 'חדשו מרשמים בלי המתנה ארוכה בטלפון.' },
-      icon: <Pill size={20} />,
-      steps: [
-        { title: { en: 'Skip the Line', he: 'דלגו על התור' }, content: { en: 'Your pharmacy has an app. Let\'s practice ordering a refill.', he: 'לבית המרקחת שלכם יש אפליקציה. בואו נתרגל הזמנת חידוש.' } },
-        { title: { en: 'Order Refill', he: 'הזמן חידוש' }, content: { en: 'Enter your RX number to start.', he: 'הזינו את מספר המרשם כדי להתחיל.' }, interactiveType: 'SIMULATED_PHARMACY' },
-      ]
-    },
-    {
       id: 'finding-your-way',
       category: 'INTERNET_SKILLS' as LessonCategory,
       title: { en: 'Finding Your Way', he: 'מצאו את דרככם' },
@@ -145,6 +218,26 @@ export const getLocalizedLessons = (lang: Language): Lesson[] => {
       ]
     },
     {
+      id: 'bus-payments',
+      category: 'INTERNET_SKILLS' as LessonCategory,
+      title: { en: 'Digital Bus Payments', he: 'תשלום באוטובוס' },
+      shortDesc: { en: 'Pay for your ride with your phone.', he: 'שלמו על הנסיעה עם הטלפון.' },
+      icon: <Bus size={20} />,
+      steps: [
+        { title: { en: 'No Cash?', he: 'אין מזומן?' }, content: { en: 'Many buses now use QR codes for payment.', he: 'אוטובוסים רבים משתמשים כיום בקודי QR לתשלום.' } },
+        {
+          title: { en: 'Pay', he: 'תשלום' },
+          content: { en: 'Scan the bus pole code.', he: 'סרקו את הקוד שעל עמוד האוטובוס.' },
+          interactiveType: 'SIMULATED_BUS_PAYMENT',
+          interactiveData: {
+            backgroundPrompt: "A clean graphic illustration of a city bus interior showing a bright yellow payment pole with a QR code scanner. Vector style, flat design, high contrast."
+          }
+        },
+      ],
+    },
+
+    // --- SAFETY LESSONS ---
+    {
       id: 'spotting-scams',
       category: 'SAFETY' as LessonCategory,
       title: { en: 'Spotting Scams', he: 'זיהוי הונאות' },
@@ -154,6 +247,19 @@ export const getLocalizedLessons = (lang: Language): Lesson[] => {
         { title: { en: 'Digital Detectives', he: 'בלשים דיגיטליים' }, content: { en: 'Scammers try to trick people. Dori helps you find the red flags.', he: 'נוכלים מנסים להונות אנשים. דורי עוזרת לכם למצוא את סימני האזהרה.' } },
         { title: { en: 'Find the Fake', he: 'מצאו את הזיוף' }, content: { en: 'Move the lens to find AI mistakes in this photo.', he: 'הזיזו את העדשה למציאת טעויות AI בתמונה זו.' }, interactiveType: 'SIMULATED_LENS', interactiveData: { backgroundPrompt: "A photo of people where one person has 6 fingers and the clock is warped.", targets: [{ x: 30, y: 55, label: { en: 'AI Error!', he: 'טעות AI!' } }] } },
       ],
+    },
+
+    // --- LIFE ADMIN LESSONS ---
+    {
+      id: 'digital-pharmacy',
+      category: 'LIFE_ADMIN' as LessonCategory,
+      title: { en: 'Pharmacy Refills', he: 'חידוש תרופות' },
+      shortDesc: { en: 'Refill your prescriptions without the long phone wait.', he: 'חדשו מרשמים בלי המתנה ארוכה בטלפון.' },
+      icon: <Pill size={20} />,
+      steps: [
+        { title: { en: 'Skip the Line', he: 'דלגו על התור' }, content: { en: 'Your pharmacy has an app. Let\'s practice ordering a refill.', he: 'לבית המרקחת שלכם יש אפליקציה. בואו נתרגל הזמנת חידוש.' } },
+        { title: { en: 'Order Refill', he: 'הזמן חידוש' }, content: { en: 'Enter your RX number to start.', he: 'הזינו את מספר המרשם כדי להתחיל.' }, interactiveType: 'SIMULATED_PHARMACY' },
+      ]
     },
     {
       id: 'bureaucracy-lesson',
@@ -177,23 +283,22 @@ export const getLocalizedLessons = (lang: Language): Lesson[] => {
       ]
     },
     {
-      id: 'bus-payments',
-      category: 'INTERNET_SKILLS' as LessonCategory,
-      title: { en: 'Digital Bus Payments', he: 'תשלום באוטובוס' },
-      shortDesc: { en: 'Pay for your ride with your phone.', he: 'שלמו על הנסיעה עם הטלפון.' },
-      icon: <Bus size={20} />,
+      id: 'mirror-world-practice',
+      category: 'LIFE_ADMIN' as LessonCategory,
+      title: { en: 'Mirror World Practice', he: 'תרגול בעולם המראה' },
+      shortDesc: { en: 'Practice any online task safely before doing it for real.', he: 'תרגלו כל משימה מקוונת בבטחה לפני ביצועה באמת.' },
+      icon: <Layout size={20} />,
       steps: [
-        { title: { en: 'No Cash?', he: 'אין מזומן?' }, content: { en: 'Many buses now use QR codes for payment.', he: 'אוטובוסים רבים משתמשים כיום בקודי QR לתשלום.' } },
-        { 
-          title: { en: 'Pay', he: 'תשלום' }, 
-          content: { en: 'Scan the bus pole code.', he: 'סרקו את הקוד שעל עמוד האוטובוס.' }, 
-          interactiveType: 'SIMULATED_BUS_PAYMENT', 
-          interactiveData: { 
-            backgroundPrompt: "A clean graphic illustration of a city bus interior showing a bright yellow payment pole with a QR code scanner. Vector style, flat design, high contrast." 
-          } 
+        {
+          title: { en: 'Safe Practice Zone', he: 'אזור תרגול בטוח' },
+          content: { en: 'Dori\'s Mirror World lets you practice tricky online tasks without any real risks. Perfect for building confidence!', he: 'עולם המראה של דורי מאפשר לך לתרגל משימות מקוונות מסובכות ללא סיכונים אמיתיים. מושלם לבניית ביטחון!' },
         },
-      ],
-    }
+        {
+          title: { en: 'Your Custom Task', he: 'המשימה המותאמת אישית שלך' },
+          content: { en: 'Tell Dori what you want to practice, like "booking a doctor appointment" or "renewing a library card." You can find this on your dashboard.', he: 'ספרו לדורי מה אתם רוצים לתרגל, כמו "קביעת תור לרופא" או "חידוש כרטיס ספרייה". תוכלו למצוא זאת בלוח המחוונים שלכם.' },
+        }
+      ]
+    },
   ];
 
   return allLessonsData.map(lesson => ({

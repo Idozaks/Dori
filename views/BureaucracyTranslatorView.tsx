@@ -8,7 +8,7 @@ import { UI_STRINGS } from '../i18n/translations';
 import { generateSpeech, decode, decodeAudioData } from '../services/geminiService';
 import { 
   Camera, X, ClipboardCheck, AlertTriangle, Calendar, CheckSquare, Info, 
-  ShieldAlert, Type, Image as ImageIcon, Sparkles, Volume2, StopCircle, RefreshCw 
+  ShieldAlert, Type, Image as ImageIcon, Sparkles, Volume2, StopCircle, RefreshCw, ArrowRight 
 } from 'lucide-react';
 
 interface AnalysisResult {
@@ -20,7 +20,12 @@ interface AnalysisResult {
   checklist: string[];
 }
 
-export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) => {
+interface BureaucracyTranslatorViewProps {
+  lang: Language;
+  onStartGuidedPath?: (goal: string) => void;
+}
+
+export const BureaucracyTranslatorView: React.FC<BureaucracyTranslatorViewProps> = ({ lang, onStartGuidedPath }) => {
   const t = UI_STRINGS[lang];
   const [inputMethod, setInputMethod] = useState<'photo' | 'text' | 'camera' | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -114,6 +119,9 @@ export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) =>
     setIsLoading(true);
     setError(null);
 
+    // Analytics: Track translator start
+    console.log('[Analytics] bureaucracy_translator_start', { method: inputMethod });
+
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
@@ -164,12 +172,25 @@ export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) =>
 
       const result = JSON.parse(response.text || "{}");
       setAnalysis(result);
+      
+      // Analytics: Track success
+      console.log('[Analytics] bureaucracy_translator_complete', { docType: result.docType, urgency: result.urgency });
     } catch (error) {
       console.error("Translation error:", error);
       setError(t.failedToGetResponse);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleStartGuidedPath = () => {
+    if (!analysis || !onStartGuidedPath) return;
+    
+    // Analytics: Track transition to guided execution
+    console.log('[Analytics] start_guided_execution_from_translator', { goal: analysis.docType });
+    
+    const goal = `${t.startGuidedExecution}: ${analysis.docType} - ${analysis.summary}`;
+    onStartGuidedPath(goal);
   };
 
   const resetAll = () => {
@@ -314,8 +335,11 @@ export const BureaucracyTranslatorView: React.FC<{lang: Language}> = ({lang}) =>
               </div>
             )}
 
-            <div className="flex gap-4 pt-6">
-              <Button onClick={resetAll} variant="secondary" fullWidth className="!py-6 !text-xl !rounded-2xl shadow-md">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
+              <Button onClick={handleStartGuidedPath} className="!py-8 !text-2xl !rounded-3xl !bg-blue-600 hover:!bg-blue-700 shadow-xl shadow-blue-100">
+                <ArrowRight className="mr-3" /> {t.startGuidedPath}
+              </Button>
+              <Button onClick={resetAll} variant="secondary" className="!py-8 !text-xl !rounded-3xl shadow-md">
                 <RefreshCw size={24} className="mr-2" /> {t.startOverNewPhoto}
               </Button>
             </div>

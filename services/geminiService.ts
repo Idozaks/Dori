@@ -1,6 +1,6 @@
 
-import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
-import { ImageSize, TTSVoiceName, Language } from "../types";
+import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/genai";
+import { ImageSize, TTSVoiceName, Language, MirrorTask } from "../types";
 import { UI_STRINGS } from '../i18n/translations';
 
 const getClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -44,6 +44,8 @@ const ESTIMATED_DURATIONS = {
   PRO_IMAGE_GENERATION: 12000,
   IMAGE_EDITING: 8000,
   SPEECH_GENERATION: 3000,
+  MIRROR_TASK_GENERATION: 15000,
+  RESULT_GENERATION: 6000,
 };
 
 interface GeminiServiceCallbacks {
@@ -70,7 +72,6 @@ const simulateProgress = (
 
   const intervalId = setInterval(() => {
     const elapsed = Date.now() - startTime;
-    // Reach 96% at estimatedDuration, then wait for stop() to hit 100
     const k = 3.2 / estimatedDurationMs;
     let progress = Math.round(100 * (1 - Math.exp(-k * elapsed)));
     progress = Math.min(98, progress);
@@ -81,7 +82,6 @@ const simulateProgress = (
     intervalId,
     stop: () => {
       clearInterval(intervalId);
-      // Final jump to 100 and set message to complete
       onProgress(100, t.complete);
     }
   };
@@ -249,7 +249,6 @@ export const editImage = async (
   }
 };
 
-// Added generateSpeech function to resolve import errors in views
 export const generateSpeech = async (
   text: string,
   voiceName: TTSVoiceName = 'Zephyr',
@@ -286,5 +285,150 @@ export const generateSpeech = async (
     progressSimulator.stop();
     callbacks?.onError?.(error);
     throw new Error(UI_STRINGS[callbacks?.lang || 'en'].failedToGenerateSpeech);
+  }
+};
+
+export const generateMirrorTask = async (
+  userGoal: string,
+  lang: Language,
+  callbacks?: GeminiServiceCallbacks
+): Promise<MirrorTask> => {
+  const ai = getClient();
+  const startTime = performance.now();
+  const estimatedDuration = ESTIMATED_DURATIONS.MIRROR_TASK_GENERATION;
+  const progressSimulator = simulateProgress(estimatedDuration, callbacks, 'generatingTask');
+
+  try {
+    const systemPrompt = `You are Dori, a compassionate and expert AI guide specialized in breaking down complex life tasks for seniors. Your mission is to provide a "Decision Dashboard" - an active, guided navigation path.
+
+Break down the user's goal into 3-5 clear, simple, sequential steps.
+Each step MUST include:
+1. "title": A short, clear name for the step. Use emojis to make it friendly and visual (e.g., "🛒 Step 1").
+2. "content": A very simple description of what needs to happen. For grocery tasks, make it feel like an interactive list.
+3. "doriGuidance": This is the heart of the system. A short message (1-2 sentences) from Dori, speaking at eye-level, offering encouragement or a simplified explanation of a technical/bureaucratic term. Avoid any legal jargon.
+4. "button": An interactive element (CLICK, INPUT_TEXT, or SELECT_OPTION) representing the core action. Use playful labels (e.g., "Ready to go! 🚀").
+
+Goal: '${userGoal}'
+Respond in ${lang === 'he' ? 'Hebrew' : 'English'}. Use high-quality, encouraging, and clear language.
+If the goal is grocery shopping, focus on the "cart" metaphor and adding items.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: systemPrompt,
+      config: {
+        thinkingConfig: { thinkingBudget: 24576 },
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            taskTitle: { type: Type.STRING, description: 'Overall title of the guided path.' },
+            steps: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING },
+                  content: { type: Type.STRING },
+                  doriGuidance: { type: Type.STRING, description: 'Simplified guidance from Dori at eye-level.' },
+                  button: { 
+                    type: Type.OBJECT,
+                    properties: {
+                      label: { type: Type.STRING },
+                      type: { type: Type.STRING, enum: ['CLICK', 'INPUT_TEXT', 'SELECT_OPTION'] },
+                      placeholder: { type: Type.STRING },
+                      options: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    },
+                    required: ['label', 'type']
+                  }
+                },
+                required: ['title', 'content', 'doriGuidance', 'button']
+              }
+            }
+          },
+          required: ['taskTitle', 'steps'],
+        }
+      },
+    });
+
+    const mirrorTask: MirrorTask = JSON.parse(response.text || "{}");
+    if (!mirrorTask.taskTitle || !mirrorTask.steps || mirrorTask.steps.length === 0) {
+      throw new Error(UI_STRINGS[lang].mirrorWorldError);
+    }
+
+    progressSimulator.stop();
+    callbacks?.onComplete?.(performance.now() - startTime);
+    return mirrorTask;
+  } catch (error: any) {
+    progressSimulator.stop();
+    callbacks?.onError?.(error);
+    console.error("Error generating mirror task:", error);
+    throw new Error(error.message || UI_STRINGS[lang].mirrorWorldError);
+  }
+};
+
+export const generateFinalResult = async (
+  userGoal: string,
+  lang: Language,
+  callbacks?: GeminiServiceCallbacks
+): Promise<{ confirmationTitle: string; summary: string; confirmationCode: string; nextSteps: { text: string, icon: string }[] }> => {
+  const ai = getClient();
+  const startTime = performance.now();
+  const progressSimulator = simulateProgress(ESTIMATED_DURATIONS.RESULT_GENERATION, callbacks, 'generatingResult');
+
+  try {
+    const prompt = `The user has just completed a simulated training path for the goal: "${userGoal}".
+    Generate a realistic "Final Result" summary that looks like a real confirmation page.
+    
+    For icons, choose one of these keywords that best fits the step: "clock", "phone", "truck", "mail", "bank", "calendar", "check", "users", "map", "alert".
+    
+    Return a JSON object:
+    {
+      "confirmationTitle": "A short official-sounding title (e.g., Application Submitted)",
+      "summary": "A 1-2 sentence summary of what was simulated.",
+      "confirmationCode": "A realistic alphanumeric code (e.g. AB-123-XY)",
+      "nextSteps": [
+        {"text": "A step description", "icon": "keyword"},
+        {"text": "Another step description", "icon": "keyword"}
+      ]
+    }
+    
+    Respond in ${lang === 'he' ? 'Hebrew' : 'English'}.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            confirmationTitle: { type: Type.STRING },
+            summary: { type: Type.STRING },
+            confirmationCode: { type: Type.STRING },
+            nextSteps: { 
+              type: Type.ARRAY, 
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  text: { type: Type.STRING },
+                  icon: { type: Type.STRING }
+                },
+                required: ['text', 'icon']
+              }
+            }
+          },
+          required: ['confirmationTitle', 'summary', 'confirmationCode', 'nextSteps']
+        }
+      }
+    });
+
+    const result = JSON.parse(response.text || "{}");
+    progressSimulator.stop();
+    callbacks?.onComplete?.(performance.now() - startTime);
+    return result;
+  } catch (error: any) {
+    progressSimulator.stop();
+    callbacks?.onError?.(error);
+    throw error;
   }
 };

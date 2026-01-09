@@ -56,10 +56,50 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
   const [isDragging, setIsDragging] = useState(false);
   const [interactiveState, setInteractiveState] = useState<any>({});
   
+  // State for LIVE_AI_CHAT
+  const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
+
+  // State for SIMULATED_IMAGE_GENERATION
+  const [imageGenPrompt, setImageGenPrompt] = useState('');
+  const [generatedImageOutput, setGeneratedImageOutput] = useState<string | null>(null);
+  const [isImageGenLoading, setIsImageGenLoading] = useState(false);
+  const [imageGenError, setImageGenError] = useState<string | null>(null);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const bureaucracyFileInputRef = useRef<HTMLInputElement>(null);
   const step = lesson.steps[stepIndex];
   const isLastStep = stepIndex === lesson.steps.length - 1;
+
+  useEffect(() => {
+    // Initialize chat messages if interactiveType is LIVE_AI_CHAT
+    if (step.interactiveType === 'LIVE_AI_CHAT' && chatMessages.length === 0) {
+      setChatMessages([{ id: 'init', role: 'model', text: step.interactiveData?.initialPrompt || t.chatInitialMessage }]);
+    }
+    // Reset image generation state when changing steps
+    if (step.interactiveType !== 'SIMULATED_IMAGE_GENERATION') {
+      setImageGenPrompt('');
+      setGeneratedImageOutput(null);
+      setIsImageGenLoading(false);
+      setImageGenError(null);
+    }
+    // Reset chat state when changing steps
+    if (step.interactiveType !== 'LIVE_AI_CHAT') {
+      setChatMessages([]);
+      setChatInput('');
+      setIsChatLoading(false);
+    }
+    // Reset other interactive states
+    setInteractiveState({});
+  }, [step, lang]);
+
+  useEffect(() => {
+    if (chatMessagesEndRef.current) {
+      chatMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages]);
 
   const handleNext = () => { 
     if (isLastStep) onFinish(lesson.id); 
@@ -124,8 +164,193 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
     }
   };
 
+  // Chat interaction logic
+  const handleChatSend = async () => {
+    const trimmedInput = chatInput.trim();
+    if (!trimmedInput) return;
+
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', text: trimmedInput };
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatInput('');
+    setIsChatLoading(true);
+
+    try {
+      const { text: responseText } = await generateTextResponse(trimmedInput, false, false, { lang });
+      const aiMsg: Message = { id: (Date.now() + 1).toString(), role: 'model', text: responseText };
+      setChatMessages(prev => [...prev, aiMsg]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      setChatMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: t.aiConnectionIssue }]);
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
+
+  // Image generation logic
+  const handleImageGen = async () => {
+    if (!imageGenPrompt.trim()) return;
+
+    setIsImageGenLoading(true);
+    setGeneratedImageOutput(null);
+    setImageGenError(null);
+
+    try {
+      const imgUrl = await generateNanoBananaImage(imageGenPrompt, { lang });
+      setGeneratedImageOutput(imgUrl);
+    } catch (error: any) {
+      console.error("Image generation error:", error);
+      setImageGenError(error.message || t.failedToGenerateImage);
+    } finally {
+      setIsImageGenLoading(false);
+    }
+  };
+
+  const handleMapSearch = () => {
+    if (!interactiveState.searchValue?.trim()) return;
+    setInteractiveState(prev => ({ ...prev, searching: true, showSearchResults: false })); // Hide results while searching
+    setTimeout(() => {
+      const exampleLocations = step.interactiveData?.exampleSearchTerms || [t.coffeeShop, t.library, t.pharmacy];
+      const foundTerm = exampleLocations.find((loc: string) => 
+        loc.toLowerCase().includes(interactiveState.searchValue.toLowerCase())
+      ) || interactiveState.searchValue; // If not found, use user's input
+
+      setInteractiveState(prev => ({ 
+        ...prev, 
+        searching: false, 
+        foundLocation: foundTerm,
+        showSearchResults: true // Show results after search
+      }));
+    }, 1200);
+  };
+
+  const handleBrowserSearch = () => {
+    if (!interactiveState.browserValue?.trim()) return;
+    setInteractiveState(prev => ({ ...prev, searching: true }));
+    setTimeout(() => {
+      setInteractiveState(prev => ({ 
+        ...prev, 
+        searching: false, 
+        showResults: true,
+        url: `google.com/search?q=${encodeURIComponent(prev.browserValue)}`
+      }));
+    }, 1000);
+  };
+
   const renderInteractive = () => {
     switch (step.interactiveType) {
+      case 'LIVE_AI_CHAT':
+        return (
+          <div className="w-full bg-slate-50 rounded-[2rem] p-6 border-4 border-slate-100 shadow-xl flex flex-col h-[450px]">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+              {chatMessages.map((msg, i) => (
+                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] px-4 py-3 rounded-xl shadow-sm text-base leading-relaxed ${
+                    msg.role === 'user' 
+                      ? 'bg-blue-600 text-white rounded-tr-none' 
+                      : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
+                  }`}>
+                    <Markdown content={msg.text} className={msg.role === 'user' ? '[&_p]:text-white [&_strong]:text-blue-100' : ''} />
+                  </div>
+                </div>
+              ))}
+              {isChatLoading && (
+                 <div className="flex justify-start">
+                   <div className="bg-white px-4 py-3 rounded-xl rounded-tl-none shadow-sm border border-slate-100">
+                     <div className="flex items-center gap-2">
+                       <div className="flex gap-1">
+                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
+                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                       </div>
+                       <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.thinkingDeeply}</span>
+                     </div>
+                   </div>
+                 </div>
+              )}
+              <div ref={chatMessagesEndRef} />
+            </div>
+            <div className="pt-4 flex items-center gap-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
+                placeholder={t.typeMessage}
+                className="flex-1 p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-blue-500 text-base font-medium text-slate-800 placeholder:text-slate-400"
+                disabled={isChatLoading}
+                dir={isRTL ? 'rtl' : 'ltr'}
+              />
+              <Button onClick={handleChatSend} disabled={!chatInput.trim() || isChatLoading} className="!p-3 !rounded-xl !bg-blue-600 hover:!bg-blue-700">
+                <Send size={20} />
+              </Button>
+            </div>
+          </div>
+        );
+      case 'SIMULATED_IMAGE_GENERATION':
+        return (
+          <div className="w-full bg-slate-50 rounded-[2rem] p-6 border-4 border-slate-100 shadow-xl space-y-6">
+            <div className="space-y-4">
+              <textarea
+                value={imageGenPrompt}
+                onChange={(e) => setImageGenPrompt(e.target.value)}
+                placeholder={step.interactiveData?.placeholder || t.imageGenPlaceholder}
+                className="w-full p-4 text-lg border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:outline-none min-h-[100px] resize-none"
+                dir={isRTL ? 'rtl' : 'ltr'}
+                disabled={isImageGenLoading}
+              />
+              <Button 
+                onClick={handleImageGen} 
+                disabled={!imageGenPrompt.trim() || isImageGenLoading}
+                fullWidth
+                isLoading={isImageGenLoading}
+                className="!bg-purple-600 hover:!bg-purple-700 !py-4 !text-xl !rounded-xl"
+              >
+                <Wand2 size={24} /> {t.createPicture}
+              </Button>
+            </div>
+
+            {imageGenError && (
+              <div className="bg-red-50 text-red-700 p-4 rounded-xl border border-red-100 text-sm flex items-center gap-2">
+                <AlertCircle size={20} className="flex-shrink-0" />
+                <p className="font-bold">{imageGenError}</p>
+              </div>
+            )}
+
+            {(generatedImageOutput || isImageGenLoading) && (
+              <div className="bg-white p-6 rounded-[1.5rem] shadow-lg border border-slate-200 animate-fade-in space-y-4">
+                <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                  <ImageIcon size={24} className="text-purple-500" /> {t.yourPicture}
+                </h3>
+                <div className="aspect-square w-full bg-slate-100 rounded-xl overflow-hidden border-2 border-slate-100 flex items-center justify-center relative">
+                  {isImageGenLoading ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100/80 backdrop-blur-sm z-10">
+                      <Sparkles size={48} className="text-purple-400 animate-spin-slow" />
+                      <p className="mt-4 text-purple-600 font-bold">{t.generatingImage}</p>
+                    </div>
+                  ) : (
+                    <img 
+                      src={generatedImageOutput!} 
+                      alt={imageGenPrompt} 
+                      className="w-full h-full object-contain"
+                    />
+                  )}
+                </div>
+                {!isImageGenLoading && generatedImageOutput && (
+                  <div className="flex gap-4">
+                    <a href={generatedImageOutput} download={`doriai-generated-${Date.now()}.png`} className="flex-1">
+                      <Button variant="secondary" fullWidth className="!py-3 !text-lg !rounded-lg">
+                        <Download size={20} /> {t.saveToComputer}
+                      </Button>
+                    </a>
+                    <Button variant="secondary" onClick={() => setGeneratedImageOutput(null)} className="!py-3 !text-lg !rounded-lg">
+                      <RefreshCw size={20} /> {t.clear}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
       case 'SIMULATED_BROWSER':
         return (
           <div className="w-full bg-slate-200 rounded-2xl overflow-hidden border-2 border-slate-300 shadow-xl">
@@ -142,28 +367,47 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
               </div>
               <Button variant="secondary" className="!p-1.5 !text-xs !rounded-lg"><RefreshCw size={14} /></Button>
             </div>
-            <div className="bg-white p-8 min-h-[300px] flex flex-col items-center justify-center text-center space-y-6">
-              <div className="text-4xl font-black text-slate-800 flex items-center gap-2">
-                 <span className="text-blue-600">G</span>
-                 <span className="text-red-500">o</span>
-                 <span className="text-yellow-500">o</span>
-                 <span className="text-blue-600">g</span>
-                 <span className="text-green-500">l</span>
-                 <span className="text-red-500">e</span>
-              </div>
-              <div className="w-full max-w-md bg-white border-2 border-slate-100 rounded-full px-6 py-4 shadow-xl flex items-center gap-3">
-                 <Search className="text-slate-300" />
-                 <input 
-                    type="text" 
-                    placeholder={t.browserUrlPlaceholder} 
-                    className="flex-1 outline-none text-lg font-bold"
-                    onFocus={() => setInteractiveState({ ...interactiveState, url: 'Searching...' })}
-                 />
-              </div>
-              <div className="flex gap-4">
-                 <div className="bg-slate-50 px-4 py-2 rounded-xl text-slate-400 font-bold text-sm border border-slate-100">Dori AI</div>
-                 <div className="bg-slate-50 px-4 py-2 rounded-xl text-slate-400 font-bold text-sm border border-slate-100">Weather</div>
-              </div>
+            <div className="bg-white p-4 sm:p-8 min-h-[300px] flex flex-col items-center justify-center text-center space-y-6">
+              {!interactiveState.showResults ? (
+                <>
+                  <div className="text-4xl font-black text-slate-800 flex items-center gap-2">
+                     <span className="text-blue-600">G</span>
+                     <span className="text-red-500">o</span>
+                     <span className="text-yellow-500">o</span>
+                     <span className="text-blue-600">g</span>
+                     <span className="text-green-500">l</span>
+                     <span className="text-red-500">e</span>
+                  </div>
+                  <div className="w-full max-w-md bg-white border-2 border-slate-100 rounded-full px-6 py-4 shadow-xl flex items-center gap-3">
+                     <Search className="text-slate-300" />
+                     <input 
+                        type="text" 
+                        value={interactiveState.browserValue || ''}
+                        onChange={(e) => setInteractiveState({ ...interactiveState, browserValue: e.target.value })}
+                        onKeyDown={(e) => e.key === 'Enter' && handleBrowserSearch()}
+                        placeholder={t.browserUrlPlaceholder} 
+                        className="flex-1 outline-none text-lg font-bold"
+                     />
+                     {interactiveState.searching && <RefreshCw size={18} className="animate-spin text-blue-500" />}
+                  </div>
+                </>
+              ) : (
+                <div className="w-full space-y-6 text-left animate-fade-in" dir="ltr">
+                  <div className="border-b border-slate-100 pb-2 mb-4">
+                    <p className="text-slate-500 text-sm">About 1,230,000 results (0.45 seconds)</p>
+                  </div>
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="space-y-1">
+                      <p className="text-emerald-700 text-sm truncate">www.example.com > {interactiveState.browserValue}</p>
+                      <h4 className="text-blue-700 text-xl font-bold hover:underline cursor-pointer">{interactiveState.browserValue} - Official Site</h4>
+                      <p className="text-slate-600 text-sm line-clamp-2">This is a simulated search result for {interactiveState.browserValue}. In a real browser, you would find many helpful links here.</p>
+                    </div>
+                  ))}
+                  <Button variant="secondary" onClick={() => setInteractiveState({})} className="!py-2 !px-4">
+                    <RefreshCw size={16} className="mr-2" /> Search Again
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -210,36 +454,61 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
       case 'SIMULATED_MAP':
         return (
           <div className="w-full bg-slate-100 rounded-[2.5rem] p-6 border-4 border-white shadow-2xl space-y-4 overflow-hidden relative min-h-[400px]">
-             <div className="absolute inset-0 bg-blue-50 opacity-50 z-0">
-               <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                 <defs>
-                   <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                     <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#3b82f6" strokeWidth="0.5" opacity="0.2" />
-                   </pattern>
-                 </defs>
-                 <rect width="100%" height="100%" fill="url(#grid)" />
-                 <circle cx="50%" cy="50%" r="10" fill="#3b82f6" opacity="0.4" />
-                 <circle cx="50%" cy="50%" r="4" fill="#3b82f6" />
-               </svg>
+             {/* Dynamic Map Background */}
+             <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-50 to-indigo-100">
+               {/* Abstract "land" and "water" areas */}
+               <div className="absolute top-0 left-0 w-full h-1/2 bg-blue-100 opacity-60" /> {/* Water body */}
+               <div className="absolute bottom-0 left-0 w-full h-1/2 bg-green-100 opacity-60" /> {/* Land mass */}
+               
+               {/* Simple road network */}
+               <div className="absolute top-1/4 left-0 w-full h-8 bg-slate-300 opacity-80 transform -rotate-2" />
+               <div className="absolute top-1/2 left-0 w-full h-8 bg-slate-300 opacity-80 transform rotate-3" />
+               <div className="absolute left-1/4 top-0 h-full w-8 bg-slate-300 opacity-80 transform rotate-1" />
+               <div className="absolute left-1/2 top-0 h-full w-8 bg-slate-300 opacity-80 transform -rotate-1" />
+
+               {/* Textured overlay for realism */}
+               <div className="absolute inset-0 bg-dots opacity-20" /> 
              </div>
              <div className="relative z-10 flex flex-col gap-4">
                <div className="bg-white p-3 rounded-2xl shadow-xl border-2 border-blue-50 flex items-center gap-3">
                  <MapPin className="text-red-500" size={24} />
                  <input 
                    type="text" 
+                   value={interactiveState.searchValue || ''}
+                   onChange={(e) => setInteractiveState(prev => ({ ...prev, searchValue: e.target.value, showSearchResults: false, foundLocation: null }))} // Clear results on new input
+                   onKeyDown={(e) => e.key === 'Enter' && handleMapSearch()}
                    placeholder={t.findNearby} 
-                   className="flex-1 outline-none text-lg font-bold text-slate-700"
+                   className="flex-1 outline-none text-lg font-bold text-slate-900 placeholder:text-slate-700 bg-transparent"
                  />
-                 <Button className="!p-3 !rounded-xl"><Search size={20} /></Button>
+                 <Button onClick={handleMapSearch} disabled={!interactiveState.searchValue?.trim() || interactiveState.searching} className="!p-3 !rounded-xl">
+                    {interactiveState.searching ? <RefreshCw size={20} className="animate-spin" /> : <Search size={20} />}
+                 </Button>
                </div>
-               <div className="mt-20 flex flex-col items-center gap-2">
-                 <div className="bg-white p-3 rounded-2xl shadow-lg border border-slate-100 animate-bounce">
-                    <MapPin className="text-red-500" size={32} />
+               
+               <div className="mt-20 flex flex-col items-center gap-2 transition-all duration-700 transform">
+                 <div className={`bg-white p-3 rounded-2xl shadow-lg border border-slate-100 ${interactiveState.searching ? 'animate-pulse scale-110' : 'animate-bounce'}`}>
+                    <MapPin className={`${interactiveState.searching ? 'text-blue-500' : 'text-red-500'}`} size={32} />
                  </div>
-                 <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl text-slate-800 font-black text-sm shadow-md">
-                    Central Park
+                 <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl text-slate-800 font-black text-sm shadow-md min-w-[100px] text-center">
+                    {interactiveState.searching ? 'Searching...' : (interactiveState.foundLocation || t.centralPark)}
                  </div>
                </div>
+
+               {/* New: Simulated Search Result Overlay */}
+               {interactiveState.showSearchResults && interactiveState.foundLocation && !interactiveState.searching && (
+                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] md:w-[80%] bg-white p-5 rounded-2xl shadow-2xl border-2 border-blue-100 animate-fade-in z-20 flex items-center gap-4">
+                   <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
+                     <Coffee size={24} /> {/* Example icon, could be dynamic based on result */}
+                   </div>
+                   <div className="flex-1">
+                     <h4 className="text-xl font-black text-slate-800 leading-tight">{interactiveState.foundLocation}</h4>
+                     <p className="text-sm text-slate-500">{t.simulatedMapResultText}</p>
+                   </div>
+                   <Button className="!p-3 !rounded-xl !bg-blue-600">
+                     <Navigation size={20} />
+                   </Button>
+                 </div>
+               )}
              </div>
           </div>
         );
@@ -344,7 +613,7 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
                  </div>
                  <div>
                    <h3 className="text-3xl font-black text-slate-800">{step.interactiveType === 'SIMULATED_BUS_PAYMENT' ? t.ridePaid : t.qrCodeScanned}</h3>
-                   <p className="text-slate-500 font-bold mt-2">{step.interactiveType === 'SIMULATED_BUS_PAYMENT' ? t.enjoyJourney : t.complete}</p>
+                   <p className="text-slate-500 font-bold mt-2">{t.complete}</p>
                  </div>
                </div>
              )}
@@ -362,7 +631,24 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
             />
             
             {interactiveState.loading ? (
-              <LoadingBar progress={interactiveState.loadingProgress} message={interactiveState.loadingMessage} lang={lang} />
+              <div className="space-y-8">
+                <div className="relative rounded-[2rem] overflow-hidden border-4 border-orange-100 aspect-video bg-slate-50 shadow-inner">
+                  <div className="scanning-beam" /> {/* Assuming scanning-beam is defined in CSS */}
+                  {(interactiveState.photo || interactiveState.text) && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-50/80 backdrop-blur-sm z-10">
+                      <div className="bg-white/90 p-4 rounded-2xl flex items-center gap-3 shadow-lg border border-orange-100">
+                        <Sparkles className="text-orange-500 animate-spin" size={24} />
+                        <span className="text-orange-600 font-black uppercase tracking-widest text-sm">
+                          {interactiveState.loadingMessage}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {interactiveState.photo && <img src={interactiveState.photo} alt="Scanning" className="w-full h-full object-cover opacity-30 grayscale" />}
+                  {interactiveState.text && <div className="p-8 text-slate-300 font-medium overflow-hidden h-full">{interactiveState.text}</div>}
+                </div>
+                <LoadingBar message={interactiveState.loadingMessage} progress={interactiveState.loadingProgress} lang={lang} estimatedDuration={10000} />
+              </div>
             ) : !interactiveState.analyzed ? (
               <div className="bg-slate-50 border-4 border-dashed border-slate-200 rounded-[2.5rem] p-12 text-center space-y-6">
                 <div className="bg-orange-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto text-orange-600 shadow-inner">
@@ -400,25 +686,21 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
                 </div>
 
                 <Button variant="secondary" onClick={() => setInteractiveState({})} className="w-full !rounded-2xl !py-4">
-                  <RefreshCw size={20} /> {t.startOverNewPhoto}
+                  <RefreshCw size={20} className="mr-2" /> {t.startOverNewPhoto}
                 </Button>
               </div>
             )}
           </div>
         );
-      default: return (
-        <div className="w-full bg-slate-50 rounded-[2rem] p-12 border-4 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
-          <Sparkles size={64} />
-          <p className="mt-4 font-black text-xl uppercase tracking-widest">{t.preparingAIWorld}</p>
-        </div>
-      );
+      default: 
+        return null; // For informational steps, render nothing as interactive.
     }
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-4 md:space-y-6 pb-20 px-4 pt-4 md:pt-8" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex items-center justify-between px-1">
-        <button onClick={onBack} className="flex items-center gap-2 text-slate-400 font-black text-[10px] md:text-xs uppercase tracking-widest hover:text-blue-600">
+        <button onClick={onBack} className="flex items-center gap-2 text-slate-400 font-black text-[10px] md:text-xs uppercase tracking-widest hover:text-blue-600 transition-colors">
           {isRTL ? <ChevronRight size={14} /> : <ChevronLeft size={14} />} {t.backToHub}
         </button>
         <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-widest border border-blue-100">

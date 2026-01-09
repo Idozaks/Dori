@@ -10,7 +10,10 @@ export enum ViewState {
   CHAT = 'CHAT',
   IMAGE_ANALYZE = 'IMAGE_ANALYZE',
   VOICE_BUDDY = 'VOICE_BUDDY',
-  BUREAUCRACY_TRANSLATOR = 'BUREAUCRACY_TRANSLATOR'
+  BUREAUCRACY_TRANSLATOR = 'BUREAUCRACY_TRANSLATOR',
+  MIRROR_SANDBOX = 'MIRROR_SANDBOX',
+  DECISION_DASHBOARD = 'DECISION_DASHBOARD',
+  LIVE_LENS = 'LIVE_LENS'
 }
 
 export type Language = 'en' | 'he' | 'es' | 'ru' | 'ar';
@@ -67,3 +70,24 @@ export type ImageSize = '1K' | '2K' | '4K';
 export type TTSVoiceName = 'Zephyr' | 'Kore' | 'Puck' | 'Charon' | 'Fenrir';
 
 export type CachedImageMap = Record<string, string | null>;
+
+export interface MirrorTaskStep {
+  title: string;
+  content: string;
+  doriGuidance?: string;
+  button: {
+    label: string;
+    type: 'CLICK' | 'INPUT_TEXT' | 'SELECT_OPTION';
+    placeholder?: string;
+    options?: string[];
+  };
+}
+
+export interface MirrorTask {
+  taskTitle: string;
+  steps: MirrorTaskStep[];
+}
+
+export interface GlobalAppState {
+  pendingGoal: string | null;
+}
