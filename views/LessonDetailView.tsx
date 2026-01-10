@@ -73,6 +73,11 @@ export const LessonDetailView: React.FC<LessonDetailViewProps> = ({ lesson, onFi
   const step = lesson.steps[stepIndex];
   const isLastStep = stepIndex === lesson.steps.length - 1;
 
+  // Scroll to top on step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [stepIndex]);
+
   useEffect(() => {
     // Initialize chat messages if interactiveType is LIVE_AI_CHAT
     if (step.interactiveType === 'LIVE_AI_CHAT' && chatMessages.length === 0) {

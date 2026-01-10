@@ -13,7 +13,8 @@ export enum ViewState {
   BUREAUCRACY_TRANSLATOR = 'BUREAUCRACY_TRANSLATOR',
   MIRROR_SANDBOX = 'MIRROR_SANDBOX',
   DECISION_DASHBOARD = 'DECISION_DASHBOARD',
-  LIVE_LENS = 'LIVE_LENS'
+  LIVE_LENS = 'LIVE_LENS',
+  GRANDCHILD_MODE = 'GRANDCHILD_MODE'
 }
 
 export type Language = 'en' | 'he' | 'es' | 'ru' | 'ar';
@@ -57,6 +58,8 @@ export interface UserAccount {
   completedLessonIds: string[];
   selectedInterests: LessonCategory[];
   preferredLanguage: Language;
+  generatedPathIds?: string[]; // Adaptive path sequence
+  pathTitle?: string; // AI-generated title for the path
 }
 
 export interface UserProgress {
@@ -68,8 +71,6 @@ export interface UserProgress {
 export type ImageSize = '1K' | '2K' | '4K';
 
 export type TTSVoiceName = 'Zephyr' | 'Kore' | 'Puck' | 'Charon' | 'Fenrir';
-
-export type CachedImageMap = Record<string, string | null>;
 
 export interface MirrorTaskStep {
   title: string;
@@ -91,3 +92,6 @@ export interface MirrorTask {
 export interface GlobalAppState {
   pendingGoal: string | null;
 }
+
+// Added missing CachedImageMap type export to fix the error in views/LessonDetailView.tsx
+export type CachedImageMap = Record<string, string>;

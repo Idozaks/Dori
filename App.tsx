@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ViewState, UserProgress, UserAccount, LessonCategory, Language, CachedImageMap, AccessibilitySettings } from './types';
+import { ViewState, UserProgress, UserAccount, LessonCategory, Language, AccessibilitySettings } from './types';
 import { ChatView } from './views/ChatView';
 import { AnalyzeView } from './views/AnalyzeView';
 import { LessonHub } from './views/LessonHub';
@@ -10,9 +10,10 @@ import { BureaucracyTranslatorView } from './views/BureaucracyTranslatorView';
 import { LandingView } from './views/LandingView';
 import { MirrorWorldView } from './views/MirrorWorldView'; 
 import { LiveLensView } from './views/LiveLensView';
+import { GrandchildModeView } from './views/GrandchildModeView';
 import { getLocalizedLessons } from './data/lessons';
 import { UI_STRINGS } from './i18n/translations';
-import { generateNanoBananaImage, generateSpeech, decode, decodeAudioData } from './services/geminiService';
+import { generateSpeech, decode, decodeAudioData } from './services/geminiService';
 import { BookOpen, Globe, Users, Check, Accessibility, X, Volume2, Type, Sun, VolumeX, Sparkles, Layout } from 'lucide-react'; 
 import { Button } from './components/Button';
 
@@ -31,7 +32,6 @@ const App: React.FC = () => {
   const [currentAccountId, setCurrentAccountId] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<UserAccount[]>(DEFAULT_ACCOUNTS);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
-  const [cachedBackgroundImages, setCachedBackgroundImages] = useState<CachedImageMap>({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNarrating, setIsNarrating] = useState(false);
   
@@ -48,6 +48,11 @@ const App: React.FC = () => {
   const lang = activeAccount?.preferredLanguage || 'he';
   const t = UI_STRINGS[lang];
   const isRTL = lang === 'he' || lang === 'ar';
+
+  // Global scroll to top on view change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view, selectedLessonId]);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -100,6 +105,7 @@ const App: React.FC = () => {
     else if (view === ViewState.MIRROR_SANDBOX) speak('mirrorWorldDesc'); 
     else if (view === ViewState.DECISION_DASHBOARD) speak('decisionDashboardDesc');
     else if (view === ViewState.LIVE_LENS) speak('narratorLiveLens');
+    else if (view === ViewState.GRANDCHILD_MODE) speak('grandchildModeDesc');
   }, [view, accessibility.voiceGuidance]);
 
   const handleLogin = (account: UserAccount) => {
@@ -116,6 +122,13 @@ const App: React.FC = () => {
     if (!currentAccountId) return;
     setAccounts(prev => prev.map(a => 
       a.id === currentAccountId ? { ...a, selectedInterests: interests } : a
+    ));
+  };
+
+  const handleUpdatePath = (pathIds: string[], pathTitle: string) => {
+    if (!currentAccountId) return;
+    setAccounts(prev => prev.map(a => 
+      a.id === currentAccountId ? { ...a, generatedPathIds: pathIds, pathTitle } : a
     ));
   };
 
@@ -158,7 +171,7 @@ const App: React.FC = () => {
       case ViewState.DASHBOARD:
         return <Dashboard onNavigate={handleNavigate} progress={activeAccount} lang={lang} onChangeLanguage={toggleLanguage} accessibility={accessibility} />;
       case ViewState.LESSON_HUB:
-        return <LessonHub onSelectLesson={(id) => { setSelectedLessonId(id); setView(ViewState.LESSON_DETAIL); }} progress={activeAccount} onUpdateInterests={handleUpdateInterests} lang={lang} />;
+        return <LessonHub onSelectLesson={(id) => { setSelectedLessonId(id); setView(ViewState.LESSON_DETAIL); }} progress={activeAccount} onUpdateInterests={handleUpdateInterests} lang={lang} onUpdatePath={handleUpdatePath} />;
       case ViewState.LESSON_DETAIL:
         const lesson = getLocalizedLessons(lang).find(l => l.id === selectedLessonId);
         return lesson ? (
@@ -167,7 +180,7 @@ const App: React.FC = () => {
             onFinish={handleFinishLesson} 
             onBack={() => setView(ViewState.LESSON_HUB)} 
             lang={lang}
-            cachedBackgroundImages={cachedBackgroundImages}
+            cachedBackgroundImages={{}}
             onPreFetchNext={(p) => {}} 
           />
         ) : null;
@@ -190,13 +203,15 @@ const App: React.FC = () => {
         );
       case ViewState.LIVE_LENS:
         return <LiveLensView lang={lang} onBack={() => setView(ViewState.DASHBOARD)} />;
+      case ViewState.GRANDCHILD_MODE:
+        return <GrandchildModeView lang={lang} onBack={() => setView(ViewState.DASHBOARD)} />;
       default:
         return <Dashboard onNavigate={handleNavigate} progress={activeAccount} lang={lang} onChangeLanguage={toggleLanguage} accessibility={accessibility} />;
     }
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${accessibility.highContrast ? 'bg-black text-white' : 'bg-slate-50 text-slate-900'} ${accessibility.extraLargeText ? 'text-2xl' : 'text-base'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`min-h-screen flex flex-col ${accessibility.highContrast ? 'bg-black text-white' : 'bg-white text-slate-900'} ${accessibility.extraLargeText ? 'text-2xl' : 'text-base'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {view !== ViewState.LANDING && (
         <header className={`sticky top-0 z-40 w-full border-b-4 transition-all ${accessibility.highContrast ? 'bg-slate-900 border-yellow-400' : 'bg-white/80 backdrop-blur-md border-slate-100'}`}>
           <div className="max-w-7xl mx-auto px-4 h-16 md:h-24 flex items-center justify-between">

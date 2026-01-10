@@ -1,11 +1,10 @@
 
 import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/genai";
-import { ImageSize, TTSVoiceName, Language, MirrorTask } from "../types";
+import { ImageSize, TTSVoiceName, Language, MirrorTask, LessonCategory } from "../types";
 import { UI_STRINGS } from '../i18n/translations';
 
 const getClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-// Added export to resolve import errors in views
 export function decode(base64: string): Uint8Array {
   const binaryString = atob(base64);
   const len = binaryString.length;
@@ -16,7 +15,6 @@ export function decode(base64: string): Uint8Array {
   return bytes;
 }
 
-// Added export to resolve import errors in views
 export async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
@@ -46,6 +44,7 @@ const ESTIMATED_DURATIONS = {
   SPEECH_GENERATION: 3000,
   MIRROR_TASK_GENERATION: 15000,
   RESULT_GENERATION: 6000,
+  PATH_GENERATION: 7000,
 };
 
 interface GeminiServiceCallbacks {
@@ -82,7 +81,7 @@ const simulateProgress = (
     intervalId,
     stop: () => {
       clearInterval(intervalId);
-      onProgress(100, t.complete);
+      onProgress(100, t.complete || 'Complete');
     }
   };
 };
@@ -418,6 +417,56 @@ export const generateFinalResult = async (
             }
           },
           required: ['confirmationTitle', 'summary', 'confirmationCode', 'nextSteps']
+        }
+      }
+    });
+
+    const result = JSON.parse(response.text || "{}");
+    progressSimulator.stop();
+    callbacks?.onComplete?.(performance.now() - startTime);
+    return result;
+  } catch (error: any) {
+    progressSimulator.stop();
+    callbacks?.onError?.(error);
+    throw error;
+  }
+};
+
+export const generateAdaptivePath = async (
+  interests: LessonCategory[],
+  allLessonIds: string[],
+  lang: Language,
+  callbacks?: GeminiServiceCallbacks
+): Promise<{ pathTitle: string; pathIds: string[] }> => {
+  const ai = getClient();
+  const startTime = performance.now();
+  const progressSimulator = simulateProgress(ESTIMATED_DURATIONS.PATH_GENERATION, callbacks, 'generatingPath');
+
+  try {
+    const prompt = `Based on the user's interests: ${interests.join(', ')}, select the best 4-6 lessons from this list: [${allLessonIds.join(', ')}] and arrange them in a meaningful, progressive learning path for a senior.
+    
+    Also, generate an inspiring title for this specific learning path (e.g., "Becoming an AI Pioneer" or "Mastering the Digital World").
+    
+    Return a JSON object:
+    {
+      "pathTitle": "The inspiring title",
+      "pathIds": ["lesson-id-1", "lesson-id-2", ...]
+    }
+    
+    Respond in ${lang === 'he' ? 'Hebrew' : 'English'}.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            pathTitle: { type: Type.STRING },
+            pathIds: { type: Type.ARRAY, items: { type: Type.STRING } }
+          },
+          required: ['pathTitle', 'pathIds']
         }
       }
     });

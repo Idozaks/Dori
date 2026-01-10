@@ -191,7 +191,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ lang }) => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 md:space-y-10 scroll-smooth bg-dots opacity-30 bg-slate-50/20">
+      <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 md:space-y-10 scroll-smooth bg-white">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
             <div className={`max-w-[90%] md:max-w-[75%] relative flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
